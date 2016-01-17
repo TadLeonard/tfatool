@@ -4,7 +4,6 @@ from enum import Enum
 
 
 URL = "http://flashair"
-DIR = "/DCIM"
 
 
 class Op(Enum):
@@ -30,9 +29,8 @@ def list_images(directory="/DCIM/100__TSB"):
     return list(_split_img_list(response.text))
 
 
-info_params = ["directory", "filename", "size", "attribute",
-               "date", "time"]
-FileInfo = namedtuple("FileInfo", info_params)
+_fields = ["directory", "filename", "size", "attribute", "date", "time"]
+FileInfo = namedtuple("FileInfo", _fields)
 
 
 def _split_img_list(text):
@@ -49,3 +47,4 @@ def count_images(directory="/DCIM/100__TSB"):
 
 if __name__ == "__main__":
     print(list_images())
+
