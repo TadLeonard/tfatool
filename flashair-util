@@ -4,6 +4,8 @@
 from argparse import ArgumentParser
 import logging
 from pathlib import Path
+import time
+
 from requests import RequestException
 from tfatool import cgi, sync
 
