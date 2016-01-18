@@ -15,12 +15,12 @@ logging.basicConfig(level=logging.INFO)
 
 parser = ArgumentParser()
 parser.add_argument("-r", "--remote-dir", default=cgi.DEFAULT_DIR)
-parser.add_argument("-d", "--local-dir", default=".")
+parser.add_argument("-R", "--local-dir", default=".")
 parser.add_argument("-l", "--list-files", action="store_true")
 parser.add_argument("-c", "--count-files", action="store_true")
-parser.add_argument("-s", "--sync-files", action="store_true")
-parser.add_argument("-m", "--sync-mode", default="name",
-                    choices=["timestamp", "name", "new"])
+parser.add_argument("-s", "--sync-forever", action="store_true")
+parser.add_argument("-S", "--sync-once", default=False,
+                    choices=["timestamp", "name"])
 parser.add_argument("-n","--n-files", type=int, default=1)
 parser.add_argument("-j", "--only-jpg", action="store_true")
 
@@ -31,6 +31,7 @@ def run():
     if args.only_jpg:
         jpg_filter = lambda f: f.filename.lower().endswith("jpg")
         filters.append(jpg_filter)
+
     try:
         if args.list_files:
             print_file_list(filters, args)
@@ -39,20 +40,24 @@ def run():
     except RequestException as e:
         print("\nHTTP request exception: {}".format(e))
 
-    if args.sync_files:
-        logger.info("Syncing {} files from {} to {} by mode '{}'".format(
-            args.n_files, args.remote_dir, args.local_dir, args.sync_mode))
+    if args.sync_forever or args.sync_once:
+        logger.info("Syncing files from {} to {}".format(
+            args.remote_dir, args.local_dir))
         local_path = Path(args.local_dir)
         if not local_path.is_dir():
             logger.info("Creating directory '{}'".format(args.local_dir))
             local_path.mkdir()
-        if args.sync_mode == "name":
+        if args.sync_once == "name":
+            logger.info("Retrieving {} latest files by filename".format(
+                args.n_files))
             sync.by_name(*filters, remote_dir=args.remote_dir,  
                          dest=args.local_dir, count=args.n_files)
-        elif args.sync_mode == "timestamp":
+        elif args.sync_once == "timestamp":
+            logger.info("Retrieving {} latest files by timestamp".format(
+                args.n_files))
             sync.by_time(*filters, remote_dir=args.remote_dir,  
                          dest=args.local_dir, count=args.n_files)
-        else:
+        if args.sync_forever:
             sync_loop(filters, args)
 
 
