@@ -3,6 +3,7 @@
 
 from argparse import ArgumentParser
 import logging
+from pathlib import Path
 from requests import RequestException
 from tfatool import cgi, sync
 
@@ -39,6 +40,10 @@ def run():
     if args.sync_files:
         logger.info("Syncing {} files from {} to {} by mode '{}'".format(
             args.n_files, args.remote_dir, args.local_dir, args.sync_mode))
+        local_path = Path(args.local_dir)
+        if not local_path.is_dir():
+            logger.info("Creating directory '{}'".format(args.local_dir))
+            local_path.mkdir()
         if args.sync_mode == "name":
             sync.by_name(*filters, remote_dir=args.remote_dir,  
                          dest=args.local_dir, count=args.n_files)
