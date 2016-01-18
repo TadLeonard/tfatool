@@ -37,9 +37,10 @@ def _pairs(keyvals):
 # FlashAir API functions
 
 
-def list_files(directory=DEFAULT_DIR):
+def list_files(*filters, directory=DEFAULT_DIR):
     response = _cgi_cmd(Op.list_files, DIR=directory)
-    return list(_split_file_list(response.text))
+    files = _split_file_list(response.text)
+    return (f for f in files if all(filt(f) for filt in filters))
 
 
 def count_files(directory=DEFAULT_DIR):
@@ -68,7 +69,8 @@ def _split_file_list(text):
     for line in lines:
         groups = line.split(",")
         if len(groups) == 6:
-            yield FileInfo(*groups)
+            d, f, size, a, date, time = groups
+            yield FileInfo(d, f, int(size), a, int(date), int(time))
 
 
 if __name__ == "__main__":
