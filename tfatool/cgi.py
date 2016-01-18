@@ -37,14 +37,14 @@ def _pairs(keyvals):
 # FlashAir API functions
 
 
-def list_files(*filters, directory=DEFAULT_DIR):
-    response = _cgi_cmd(Op.list_files, DIR=directory)
+def list_files(*filters, remote_dir=DEFAULT_DIR):
+    response = _cgi_cmd(Op.list_files, DIR=remote_dir)
     files = _split_file_list(response.text)
     return (f for f in files if all(filt(f) for filt in filters))
 
 
-def count_files(directory=DEFAULT_DIR):
-    response = _cgi_cmd(Op.count_files, DIR=directory)
+def count_files(remote_dir=DEFAULT_DIR):
+    response = _cgi_cmd(Op.count_files, DIR=remote_dir)
     return int(response.text)
 
 
