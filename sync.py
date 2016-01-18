@@ -3,11 +3,17 @@ from collections import namedtuple
 from enum import Enum
 
 
+##################################
+# FlashAir API request formatting
+
+
 URL = "http://flashair"
+DEFAULT_DIR = "/DCIM/100__TSB"
 
 
 class Op(Enum):
     list_files = 100
+    count_files = 101
 
 
 def make_cmd(op, **params):
@@ -23,17 +29,34 @@ def _pairs(keyvals):
     return "&" + pairs
 
 
-def list_images(directory="/DCIM/100__TSB"):
-    cmd = make_cmd(Op.list_files, DIR="/DCIM/100__TSB")
-    response = requests.get(cmd)
-    return list(_split_img_list(response.text))
+##########################
+# FlashAir API functions
+
+
+def list_files(directory=DEFAULT_DIR):
+    response = _cgi_cmd(Op.list_files, DIR=directory)
+    return list(_split_file_list(response.text))
+
+
+def count_files(directory=DEFAULT_DIR):
+    response = _cgi_cmd(Op.count_files, DIR=directory)
+    return int(response.text)
+
+
+#############################
+# API implementation details
+
+
+def _cgi_cmd(op, **extras):
+    cmd = make_cmd(op, **extras)
+    return requests.get(cmd)
 
 
 _fields = ["directory", "filename", "size", "attribute", "date", "time"]
 FileInfo = namedtuple("FileInfo", _fields)
 
 
-def _split_img_list(text):
+def _split_file_list(text):
     lines = text.split("\r\n")
     for line in lines:
         groups = line.split(",")
@@ -41,10 +64,8 @@ def _split_img_list(text):
             yield FileInfo(*groups)
 
 
-def count_images(directory="/DCIM/100__TSB"):
-    pass
-
 
 if __name__ == "__main__":
-    print(list_images())
+    print(list_files())
+    print(count_files())
 
