@@ -2,9 +2,13 @@
 #coding: UTF-8
 
 from argparse import ArgumentParser
+import logging
 from requests import RequestException
 from tfatool import cgi, sync
 
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 parser = ArgumentParser()
 parser.add_argument("-r", "--remote-dir", default=cgi.DEFAULT_DIR)
@@ -12,32 +16,64 @@ parser.add_argument("-d", "--local-dir", default=".")
 parser.add_argument("-l", "--list-files", action="store_true")
 parser.add_argument("-c", "--count-files", action="store_true")
 parser.add_argument("-s", "--sync-files", action="store_true")
-parser.add_argument("-t", "--sync-mode", default="name",
-                    choices=["timestamp", "name"])
+parser.add_argument("-m", "--sync-mode", default="name",
+                    choices=["timestamp", "name", "new"])
+parser.add_argument("-n","--n-files", type=int, default=1)
 parser.add_argument("-j", "--only-jpg", action="store_true")
 
 
 def run():
     args = parser.parse_args()
+    filters = []
+    if args.only_jpg:
+        jpg_filter = lambda f: f.filename.lower().endswith("jpg")
+        filters.append(jpg_filter)
     try:
         if args.list_files:
-            print_file_list(args)
+            print_file_list(filters, args)
         if args.count_files:
-            print_file_count(args)
+            print_file_count(filters, args)
     except RequestException as e:
         print("\nHTTP request exception: {}".format(e))
-    sync.get_most_recent_file()
+
+    if args.sync_files:
+        logger.info("Syncing {} files from {} to {} by mode '{}'".format(
+            args.n_files, args.remote_dir, args.local_dir, args.sync_mode))
+        if args.sync_mode == "name":
+            sync.by_name(*filters, remote_dir=args.remote_dir,  
+                         dest=args.local_dir, count=args.n_files)
+        elif args.sync_mode == "timestamp":
+            sync.by_time(*filters, remote_dir=args.remote_dir,  
+                         dest=args.local_dir, count=args.n_files)
+        else:
+            sync_loop(filters, args)
 
 
-def print_file_list(args):
-    files = cgi.list_files(remote_dir=args.remote_dir)
+def sync_loop(filters, args):
+    while True:
+        logger.info("Waiting for newly arrived files...")
+        try:
+            sync.sync_new_arrivals(
+                *filters, remote_dir=args.remote_dir, dest=args.local_dir)
+        except KeyboardInterrupt:
+            break
+        except RequestException as e:
+            logger.error("Trying again after request failure: {}".format(
+                         str(e)))
+            time.sleep(3)
+
+
+def print_file_list(filters, args):
+    files = cgi.list_files(*filters, remote_dir=args.remote_dir)
+    files = list(files)
     print("\nFiles\n=====")
     print("\n".join(f.filename for f in files))
     print("({:d} files)".format(len(files)))
     
 
-def print_file_count(args):
-    n_files = cgi.count_files(remote_dir=args.remote_dir)
+def print_file_count(filters, args):
+    files = cgi.list_files(*filters, remote_dir=args.remote_dir)
+    n_files = len(list(files))
     title = "Number of files in {}".format(args.remote_dir)
     print("\n{}\n{}".format(title, "=" * len(title)))
     print(n_files)
@@ -45,4 +81,4 @@ def print_file_count(args):
 
 if __name__ == "__main__":
     run()
-   
+ 
