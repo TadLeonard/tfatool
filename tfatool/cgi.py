@@ -5,6 +5,7 @@ from enum import Enum
 
 
 logger = logging.getLogger(__name__)
+logging.getLogger("requests").setLevel(logging.WARNING)
 
 
 ##################################
