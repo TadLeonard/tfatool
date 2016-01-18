@@ -3,13 +3,18 @@
 
 from argparse import ArgumentParser
 from requests import RequestException
-from tfatool import cgicmd
+from tfatool import cgi, sync
 
 
 parser = ArgumentParser()
-parser.add_argument("-d", "--directory", default=cgicmd.DEFAULT_DIR)
+parser.add_argument("-r", "--remote-dir", default=cgi.DEFAULT_DIR)
+parser.add_argument("-d", "--local-dir", default=".")
 parser.add_argument("-l", "--list-files", action="store_true")
 parser.add_argument("-c", "--count-files", action="store_true")
+parser.add_argument("-s", "--sync-files", action="store_true")
+parser.add_argument("-t", "--sync-mode", default="name",
+                    choices=["timestamp", "name"])
+parser.add_argument("-j", "--only-jpg", action="store_true")
 
 
 def run():
@@ -21,18 +26,19 @@ def run():
             print_file_count(args)
     except RequestException as e:
         print("\nHTTP request exception: {}".format(e))
+    sync.get_most_recent_file()
 
 
 def print_file_list(args):
-    files = cgicmd.list_files(directory=args.directory)
+    files = cgi.list_files(remote_dir=args.remote_dir)
     print("\nFiles\n=====")
     print("\n".join(f.filename for f in files))
     print("({:d} files)".format(len(files)))
     
 
 def print_file_count(args):
-    n_files = cgicmd.count_files(directory=args.directory)
-    title = "Number of files in {}".format(args.directory)
+    n_files = cgi.count_files(remote_dir=args.remote_dir)
+    title = "Number of files in {}".format(args.remote_dir)
     print("\n{}\n{}".format(title, "=" * len(title)))
     print(n_files)
 
