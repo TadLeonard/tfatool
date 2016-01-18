@@ -65,7 +65,7 @@ def sync_loop(filters, args):
     while True:
         logger.info("Waiting for newly arrived files...")
         try:
-            sync.sync_new_arrivals(
+            sync.by_new_arrivals(
                 *filters, remote_dir=args.remote_dir, dest=args.local_dir)
         except KeyboardInterrupt:
             break

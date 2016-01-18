@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def sync_new_arrivals(*filters, remote_dir=DEFAULT_DIR, dest="."):
+def by_new_arrivals(*filters, remote_dir=DEFAULT_DIR, dest="."):
     old_files = set()
     while True:
         new_files = set(cgi.list_files(*filters, remote_dir=remote_dir))
