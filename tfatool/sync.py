@@ -1,5 +1,6 @@
 
 import logging
+import time
 from pathlib import PosixPath, Path
 import requests
 from . import cgi
@@ -10,18 +11,38 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def sync_most_recent_file(*filters, remote_dir=DEFAULT_DIR, dest="."):
-    files = cgi.list_files(directory, *filters)
-    most_recent = max(files, key=lambda f: (f.date, f.time))
-    logger.debug("Most recent file: {}".format(most_recent))
-    _sync_file(dest, most_recent)
-    
+def sync_new_arrivals(*filters, remote_dir=DEFAULT_DIR, dest="."):
+    old_files = set()
+    while True:
+        new_files = set(cgi.list_files(*filters, remote_dir=remote_dir))
+        if old_files and old_files < new_files:
+            new_arrivals = new_files - old_files
+            logger.info("Files to sync:\n{}".format(
+                "\n".join("  " + f.filename for f in new_arrivals)))
+            for f in new_arrivals:
+                _sync_file(dest, f)
+        old_files = new_files
+        time.sleep(1)
 
-def sync_greatest_named_file(*filters, remote_dir=DEFAULT_DIR, dest="."):
-    files = cgi.list_files(directory, *filters)
-    greatest = max(files, key=lambda f: f.filename)
-    logger.debug("Greatest filename alphabetically: {}".format(greatest))
-    _sync_file(dest, greatest)
+
+def by_time(*filters, remote_dir=DEFAULT_DIR, dest=".", count=1):
+    files = cgi.list_files(*filters, remote_dir=remote_dir)
+    most_recent = sorted(files, key=lambda f: (f.date, f.time))
+    to_sync = most_recent[-count:]
+    logger.info("Files to sync:\n{}".format(
+        "\n".join("  " + f.filename for f in to_sync)))
+    for f in to_sync[::-1]:
+        _sync_file(dest, f)
+
+
+def by_name(*filters, remote_dir=DEFAULT_DIR, dest=".", count=1):
+    files = cgi.list_files(*filters, remote_dir=remote_dir)
+    greatest = sorted(files, key=lambda f: f.filename)
+    to_sync = greatest[-count:]
+    logger.info("Files to sync:\n{}".format(
+        "\n".join("  " + f.filename for f in to_sync)))
+    for f in to_sync[::-1]:
+        _sync_file(dest, f)
 
 
 def _sync_file(destination_dir, fileinfo):
@@ -31,10 +52,10 @@ def _sync_file(destination_dir, fileinfo):
                     str(local_path)))
     else:
         remote_path = PosixPath(fileinfo.directory, fileinfo.filename)
-        logger.info("Copying remote file {:s} to {:s}".format(
-                    remote_path, local_path))
+        logger.info("Copying remote file {} to {}".format(
+                    str(remote_path), str(local_path)))
         streaming_file = _get_file(fileinfo)
-        _write_file(local_path, streaming_file)
+        _write_file(str(local_path), streaming_file)
 
 
 def _get_file(fileinfo):
@@ -49,11 +70,9 @@ def _write_file(local_path, response):
     if response.status_code == 200:
         written = 0
         with open(local_path, "wb") as outfile:
-            for chunk in response.iter_response(1024):
+            for chunk in response.iter_content(1024):
                 written += len(chunk)
                 outfile.write(chunk)
-                print("Bytes written: {:d}\r".format(written))
-            print()
     else:
         raise requests.RequestException("Expected status code 200")
 
