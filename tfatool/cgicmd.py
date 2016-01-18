@@ -1,6 +1,10 @@
+import logging
 import requests
 from collections import namedtuple
 from enum import Enum
+
+
+logger = logging.getLogger(__name__)
 
 
 ##################################
@@ -20,7 +24,7 @@ def make_cmd(op, **params):
     extras = _pairs(params) if params else ""
     cmd = "{url}/command.cgi?op={op:d}{extras}".format(
         url=URL, op=op.value, extras=extras)
-    return cmd
+    return cmd.encode("UTF-8")
 
 
 def _pairs(keyvals):
@@ -49,7 +53,10 @@ def count_files(directory=DEFAULT_DIR):
 
 def _cgi_cmd(op, **extras):
     cmd = make_cmd(op, **extras)
-    return requests.get(cmd)
+    logger.debug("Request: {}".format(cmd))
+    response = requests.get(cmd)
+    logger.debug("Response: {}".format(response))
+    return response
 
 
 _fields = ["directory", "filename", "size", "attribute", "date", "time"]
@@ -62,7 +69,6 @@ def _split_file_list(text):
         groups = line.split(",")
         if len(groups) == 6:
             yield FileInfo(*groups)
-
 
 
 if __name__ == "__main__":
