@@ -27,11 +27,12 @@ def print_file_list(args):
     files = cgicmd.list_files(directory=args.directory)
     print("\nFiles\n=====")
     print("\n".join(f.filename for f in files))
+    print("({:d} files)".format(len(files)))
     
 
 def print_file_count(args):
     n_files = cgicmd.count_files(directory=args.directory)
-    title = "Number of files in {}".format(directory)
+    title = "Number of files in {}".format(args.directory)
     print("\n{}\n{}".format(title, "=" * len(title)))
     print(n_files)
 
