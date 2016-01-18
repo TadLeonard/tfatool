@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+#coding: UTF-8
+
+from argparse import ArgumentParser
+from requests import RequestException
+from tfatool import cgicmd
+
+
+parser = ArgumentParser()
+parser.add_argument("-d", "--directory", default=cgicmd.DEFAULT_DIR)
+parser.add_argument("-l", "--list-files", action="store_true")
+parser.add_argument("-c", "--count-files", action="store_true")
+
+
+def run():
+    args = parser.parse_args()
+    try:
+        if args.list_files:
+            print_file_list(args)
+        if args.count_files:
+            print_file_count(args)
+    except RequestException as e:
+        print("\nHTTP request exception: {}".format(e))
+
+
+def print_file_list(args):
+    files = cgicmd.list_files(directory=args.directory)
+    print("\nFiles\n=====")
+    print("\n".join(f.filename for f in files))
+    
+
+def print_file_count(args):
+    n_files = cgicmd.count_files(directory=args.directory)
+    title = "Number of files in {}".format(directory)
+    print("\n{}\n{}".format(title, "=" * len(title)))
+    print(n_files)
+
+
+if __name__ == "__main__":
+    run()
+   
