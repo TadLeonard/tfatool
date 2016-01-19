@@ -4,6 +4,7 @@
 from argparse import ArgumentParser
 import logging
 from pathlib import Path
+import re
 import time
 
 from requests import RequestException
@@ -15,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 
 parser = ArgumentParser()
 parser.add_argument("-r", "--remote-dir", default=cgi.DEFAULT_DIR)
-parser.add_argument("-R", "--local-dir", default=".")
+parser.add_argument("-d", "--local-dir", default=".")
 parser.add_argument("-l", "--list-files", action="store_true")
 parser.add_argument("-c", "--count-files", action="store_true")
 parser.add_argument("-s", "--sync-forever", action="store_true")
@@ -23,6 +24,8 @@ parser.add_argument("-S", "--sync-once", default=False,
                     choices=["timestamp", "name"])
 parser.add_argument("-n","--n-files", type=int, default=1)
 parser.add_argument("-j", "--only-jpg", action="store_true")
+parser.add_argument("-k", "--match-regex", default=None,
+                    help="filter for files that match the given pattern")
 
 
 def run():
@@ -31,6 +34,9 @@ def run():
     if args.only_jpg:
         jpg_filter = lambda f: f.filename.lower().endswith("jpg")
         filters.append(jpg_filter)
+    if args.match_regex:
+        regex_filter = lambda f: re.match(args.match_regex, f.filename)
+        filters.append(regex_filter)
 
     try:
         if args.list_files:
