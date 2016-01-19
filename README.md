@@ -1,8 +1,7 @@
 # tfatool
 
-
 Tools for managing files with the Toshiba FlashAir wireless SD card.
-See [FlashAir API documentation](https://flashair-developers.com/en/documents/api/) for more information. Features include
+See [FlashAir API documentation](https://flashair-developers.com/en/documents/api/) for more information. Features include:
 
 * functions for easy usage of FlashAir's [command.cgi](https://flashair-developers.com/en/documents/api/commandcgi/)
 * functions to facilitate copying/syncing files from FlashAir
@@ -10,7 +9,7 @@ See [FlashAir API documentation](https://flashair-developers.com/en/documents/ap
 <img align="right" src="_docs/flashair.jpg">
 
 # Usage
-## From the command line
+## Using the `flashair-util` script
 ### Help menu
 ```
 $ flashair-util -h
@@ -34,7 +33,7 @@ Watch for new files on the FlashAir SD card. When new files are found,
 write them to a specified directory.
 
 ```
-$ flashair-util -s -d path/to/my/images 
+$ flashair-util -s -d path/to/images 
 INFO:__main__:Syncing files from /DCIM/100__TSB to path/to/images
 INFO:__main__:Waiting for newly arrived files...
 INFO:tfatool.sync:Files to sync:
@@ -58,9 +57,8 @@ IMG_0325.JPG
 (179 files)
 ```
 
-## As a library
+## Using the `tfatool` library
 ### Example 1: using FlashAir CGI commands
-
 ```python
 import tfatool.cgi
 
@@ -76,6 +74,7 @@ def examine_large_files():
       continue  # skip raw files
     if size > 10e7:
       # file size greater than 10 MB!
+      
       print("Huge file ({:d} bytes): {}/{} created on {}-{}".format(
             f.size, f.directory, f.filename, f.date, f.time))
     print(f.time, f.date)  # time and date encoded as integers
@@ -98,6 +97,10 @@ tfatools.sync.by_list(only_camille_photos, dest="/home/tad/Pictures/camille")
 ```
 
 ### Example 3: using new file monitoring function
+The `tfatool.sync.by_new_arrivals()` function watches your FlashAir device
+for new files. When new files are found, they're copied to the local directory
+specified by the `dest` argument (current working directory by default).
+
 ```python
 import tfatool.sync
 
