@@ -1,0 +1,106 @@
+# tfatool
+Tools for managing files with the Toshiba FlashAir wireless SD card.
+
+# Usage
+## From the command line
+### Help menu
+```
+$ flashair-util -h
+usage: flashair-util [-h] [-r REMOTE_DIR] [-R LOCAL_DIR] [-l] [-c] [-s]
+                     [-S {timestamp,name}] [-n N_FILES] [-j]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -r REMOTE_DIR, --remote-dir REMOTE_DIR
+  -d LOCAL_DIR, --local-dir LOCAL_DIR
+  -l, --list-files
+  -c, --count-files
+  -s, --sync-forever
+  -S {timestamp,name}, --sync-once {timestamp,name}
+  -n N_FILES, --n-files N_FILES
+  -j, --only-jpg
+```
+
+### Example 1: sync newly created files on FlashAir card
+Watch for new files on the FlashAir SD card. When new files are found,
+write them to a specified directory.
+
+```
+$ flashair-util -s -d path/to/my/images 
+INFO:__main__:Syncing files from /DCIM/100__TSB to path/to/images
+INFO:__main__:Waiting for newly arrived files...
+INFO:tfatool.sync:Files to sync:
+  IMG_0672.CR2
+  IMG_0672.JPG
+INFO:tfatool.sync:Copying remote file /DCIM/100__TSB/IMG_0672.CR2 to path/to/images/IMG_0672.CR2
+```
+
+
+### Example 2: list all JPEG files on FlashAir device
+```
+$ flashair-util --list-files --only-jpg
+
+Files in /DCIM/100__TSB
+=======================
+FA000001.JPG
+IMG_0152.JPG
+IMG_0153.JPG
+...
+IMG_0325.JPG
+(179 files)
+```
+
+## As a library
+### Example 1: using FlashAir CGI commands
+
+```python
+import tfatool.cgi
+
+def list_and_count_files():
+  flashair_files = tfatool.cgi.list_files()  # list files in /DCIM/100__TSB by default
+  n_flashair_files = tfatool.cgi.count_files(DIR="/DCIM")  # count in specific directory
+  special_files = tfatool.cgi.list_files(DIR="/DCIM/my_special_folder")
+  
+def examine_large_files():
+  # the list_files CGI command provides six interesting file attributes
+  for f in tfatool.cgi.list_files():
+    if f.filename.lower().endswith(".raw", ".cr2"):
+      continue  # skip raw files
+    if size > 10e7:
+      # file size greater than 10 MB!
+      print("Huge file ({:d} bytes): {}/{} created on {}-{}".format(
+            f.size, f.directory, f.filename, f.date, f.time))
+    print(f.time, f.date)  # time and date encoded as integers
+```
+
+### Example 2: using file syncronization functions
+
+```python
+import tfatool.sync
+
+# Sync files as a one-off action
+tfatool.sync.by_timestamp(count=10)  # places most recent files in CWD by default
+tfatool.sync.by_timestamp(count=15, dest="/home/tad/Pictures")
+
+# Sync specific files selected from list_files
+import tfatools.cgi
+all_files = tfatools.cgi.list_files()
+only_camille_photos = [f for f in all_files if "camille" in f.filename.lower()]
+tfatools.sync.by_list(only_camille_photos, dest="/home/tad/Pictures/camille")
+```
+
+### Example 3: using new file monitoring function
+```python
+import tfatool.sync
+
+# Sync forever
+tfatool.sync.by_new_arrivals(dest="/home/tad/Pictures/new")
+
+# Sync only .raw files (forever) that are smaller than 3 MB
+is_raw = lambda f: f.filename.lower.endswith(".raw", ".cr2")
+is_small = lambda f: f.size < 3e6
+tfatool.sync.by_new_arrivals(is_raw, is_small, dest="/home/tad/Pictures/raw")
+```
+
+# Installation
+Requires `requests` and `python3.4+`. Install with `pip3 install tfatool`.
