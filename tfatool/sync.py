@@ -79,10 +79,8 @@ def _get_file(fileinfo):
 
 def _write_file(local_path, response):
     if response.status_code == 200:
-        written = 0
         with open(local_path, "wb") as outfile:
-            for chunk in response.iter_content(1024):
-                written += len(chunk)
+            for chunk in response.iter_content(10**6):
                 outfile.write(chunk)
     else:
         raise requests.RequestException("Expected status code 200")
