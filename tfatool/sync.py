@@ -12,6 +12,9 @@ logger.setLevel(logging.DEBUG)
 
 
 def by_new_arrivals(*filters, remote_dir=DEFAULT_DIR, dest="."):
+    """Monitor `remote_dir` on FlashAir card for new files.
+    When new files are found, should they pass all of the given
+    `filters`, sync them with `dest` local directory."""
     old_files = set()
     while True:
         new_files = set(cgi.list_files(*filters, remote_dir=remote_dir))
@@ -25,7 +28,14 @@ def by_new_arrivals(*filters, remote_dir=DEFAULT_DIR, dest="."):
         time.sleep(1)
 
 
+def by_files(to_sync, dest="."):
+    """Sync a given list of files from `cgi.list_files` to `dest` dir"""
+    for f in to_sync:
+        _sync_file(dest, f)
+
+
 def by_time(*filters, remote_dir=DEFAULT_DIR, dest=".", count=1):
+    """Sync most recent file by date, time attribues"""
     files = cgi.list_files(*filters, remote_dir=remote_dir)
     most_recent = sorted(files, key=lambda f: (f.date, f.time))
     to_sync = most_recent[-count:]
@@ -36,6 +46,7 @@ def by_time(*filters, remote_dir=DEFAULT_DIR, dest=".", count=1):
 
 
 def by_name(*filters, remote_dir=DEFAULT_DIR, dest=".", count=1):
+    """Sync files whose filename attribute is highest in alphanumeric order"""
     files = cgi.list_files(*filters, remote_dir=remote_dir)
     greatest = sorted(files, key=lambda f: f.filename)
     to_sync = greatest[-count:]

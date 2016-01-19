@@ -93,7 +93,7 @@ tfatool.sync.by_timestamp(count=15, dest="/home/tad/Pictures")
 import tfatools.cgi
 all_files = tfatools.cgi.list_files()
 only_camille_photos = [f for f in all_files if "camille" in f.filename.lower()]
-tfatools.sync.by_list(only_camille_photos, dest="/home/tad/Pictures/camille")
+tfatools.sync.by_files(only_camille_photos, dest="/home/tad/Pictures/camille")
 ```
 
 ### Example 3: using new file monitoring function
