@@ -1,8 +1,13 @@
 # tfatool
-Tools for managing files with the Toshiba FlashAir wireless SD card.
-See [FlashAir API documentation](https://flashair-developers.com/en/documents/api/) for more information.
 
-![an image](_docs/flashair.jpg)
+
+Tools for managing files with the Toshiba FlashAir wireless SD card.
+See [FlashAir API documentation](https://flashair-developers.com/en/documents/api/) for more information. Features include
+
+* functions for easy usage of FlashAir's [command.cgi](https://flashair-developers.com/en/documents/api/commandcgi/)
+* functions to facilitate copying/syncing files from FlashAir
+* a command line tool for syncing FlashAir files with a local directory
+<img align="right" src="_docs/flashair.jpg">
 
 # Usage
 ## From the command line
