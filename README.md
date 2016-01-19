@@ -13,8 +13,8 @@ See [FlashAir API documentation](https://flashair-developers.com/en/documents/ap
 ### Help menu
 ```
 $ flashair-util -h
-usage: flashair-util [-h] [-r REMOTE_DIR] [-R LOCAL_DIR] [-l] [-c] [-s]
-                     [-S {timestamp,name}] [-n N_FILES] [-j]
+usage: flashair-util [-h] [-r REMOTE_DIR] [-d LOCAL_DIR] [-l] [-c] [-s]
+                     [-S {timestamp,name}] [-n N_FILES] [-j] [-k MATCH_REGEX]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -26,6 +26,8 @@ optional arguments:
   -S {timestamp,name}, --sync-once {timestamp,name}
   -n N_FILES, --n-files N_FILES
   -j, --only-jpg
+  -k MATCH_REGEX, --match-regex MATCH_REGEX
+                        filter for files that match the given pattern
 ```
 
 ### Example 1: sync newly created files on FlashAir card
