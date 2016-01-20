@@ -14,6 +14,6 @@ setup(name="tfatool",
       author_email="tadfleonard@gmail.com",
       keywords="wireless sd card sync toshiba flashair", 
       url="https://github.com/TadLeonard/tfatool",
-      download_url="https://github.com/TadLeonard/tfatool/archive/v1.0.2.tar.gz",
+      download_url="https://github.com/TadLeonard/tfatool/archive/v1.1.0.tar.gz",
 )
 
