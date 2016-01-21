@@ -80,17 +80,19 @@ def _get_file(fileinfo):
 
 def _write_file(local_path, fileinfo, response):
     start = time.time() 
-    pbar = tqdm.tqdm(total=fileinfo.size)
+    pbar_size = fileinfo.size / (5 * 10**5)
+    pbar = tqdm.tqdm(total=int(pbar_size))
     if response.status_code == 200:
         with open(local_path, "wb") as outfile:
             for chunk in response.iter_content(5*10**5):
-                pbar.update(len(chunk))
+                progress = len(chunk) / (5 * 10**5)
+                pbar.update(int(progress))
                 outfile.write(chunk)
     else:
         raise requests.RequestException("Expected status code 200")
     pbar.close()
     duration = time.time() - start
-    logger.info("Wrote {} in {:0.2f} s ({:0.2f} MB/s)".format(
-                fileinfo.filename, duration,
+    logger.info("Wrote {} in {:0.2f} s ({:0.2f} MB, {:0.2f} MB/s)".format(
+                fileinfo.filename, duration, fileinfo.size / 10 ** 6,
                 fileinfo.size / (duration * 10 ** 6)))
 
