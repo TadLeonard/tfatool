@@ -5,7 +5,7 @@ import tfatool._version
 setup(name="tfatool",
       version=tfatool._version.__version__,
       scripts=["flashair-util"],
-      install_requires=["requests>=2.9.0",],
+      install_requires=["requests>=2.9.0", "tqdm>=3.7.1"],
       licence="MIT",
       packages=["tfatool"],
       description=("Tools for syncing files with the "
