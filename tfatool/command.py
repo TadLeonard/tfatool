@@ -14,7 +14,7 @@ class Op(IntEnum):
 
 
 def get(op: Op, url=URL, **params):
-    params.update(op=op)
+    params.update(op=int(op))
     return cgi.get(cgi.Entrypoint.command, url=url, **params)
 
 
