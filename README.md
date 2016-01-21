@@ -110,7 +110,7 @@ import tfatool.sync
 tfatool.sync.by_new_arrivals(dest="/home/tad/Pictures/new")
 
 # Sync only .raw files (forever) that are smaller than 3 MB
-is_raw = lambda f: f.filename.lower.endswith(".raw", ".cr2")
+is_raw = lambda f: f.filename.lower().endswith(".raw", ".cr2")
 is_small = lambda f: f.size < 3e6
 tfatool.sync.by_new_arrivals(is_raw, is_small, dest="/home/tad/Pictures/raw")
 ```
