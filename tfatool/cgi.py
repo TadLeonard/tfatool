@@ -7,7 +7,6 @@ from .info import URL
 
 
 logger = logging.getLogger(__name__)
-logging.getLogger("requests").setLevel(logging.WARNING)
 
 
 class Entrypoint(str, Enum):
