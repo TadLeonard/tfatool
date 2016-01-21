@@ -59,6 +59,8 @@ IMG_0325.JPG
 (179 files)
 ```
 
+`flashair-util -l -j` and `flashair-util -l -k '.+\.JPG'` are equivalent.
+
 ## Using the `tfatool` library
 ### Example 1: using FlashAir CGI commands
 ```python
@@ -74,9 +76,8 @@ def examine_large_files():
   for f in tfatool.cgi.list_files():
     if f.filename.lower().endswith(".raw", ".cr2"):
       continue  # skip raw files
-    if size > 10e7:
+    if size > 10**7:
       # file size greater than 10 MB!
-      
       print("Huge file ({:d} bytes): {}/{} created on {}-{}".format(
             f.size, f.directory, f.filename, f.date, f.time))
     print(f.time, f.date)  # time and date encoded as integers
