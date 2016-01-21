@@ -19,7 +19,7 @@ class Entrypoint(str, Enum):
 
 def request(method, entrypoint, url=URL, **params):
     resource = urljoin(url, entrypoint)
-    logger.debug("Request: {}".format(entrypoint))
+    logger.debug("Request: {}".format(resource))
     response = requests.request(method, resource, params=params)
     logger.debug("Response: {}".format(response))
     return response
