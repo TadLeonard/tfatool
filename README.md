@@ -64,16 +64,16 @@ IMG_0325.JPG
 ## Using the `tfatool` library
 ### Example 1: using FlashAir CGI commands
 ```python
-import tfatool.cgi
+from tfatool import command
 
 def list_and_count_files():
-  flashair_files = tfatool.cgi.list_files()  # list files in /DCIM/100__TSB by default
-  n_flashair_files = tfatool.cgi.count_files(DIR="/DCIM")  # count in specific directory
-  special_files = tfatool.cgi.list_files(DIR="/DCIM/my_special_folder")
+  flashair_files = command.list_files()  # list files in /DCIM/100__TSB by default
+  n_flashair_files = command.count_files(DIR="/DCIM")  # count in specific directory
+  special_files = command.list_files(DIR="/DCIM/my_special_folder")
   
 def examine_large_files():
   # the list_files CGI command provides six interesting file attributes
-  for f in tfatool.cgi.list_files():
+  for f in command.list_files():
     if f.filename.lower().endswith(".raw", ".cr2"):
       continue  # skip raw files
     if size > 10**7:
@@ -86,17 +86,17 @@ def examine_large_files():
 ### Example 2: using file syncronization functions
 
 ```python
-import tfatool.sync
+from tfatool import sync
 
 # Sync files as a one-off action
-tfatool.sync.by_timestamp(count=10)  # places most recent files in CWD by default
-tfatool.sync.by_timestamp(count=15, dest="/home/tad/Pictures")
+sync.by_timestamp(count=10)  # places most recent files in CWD by default
+sync.by_timestamp(count=15, dest="/home/tad/Pictures")
 
 # Sync specific files selected from list_files
-import tfatools.cgi
-all_files = tfatools.cgi.list_files()
+from tfatool import command
+all_files = command.list_files()
 only_camille_photos = [f for f in all_files if "camille" in f.filename.lower()]
-tfatools.sync.by_files(only_camille_photos, dest="/home/tad/Pictures/camille")
+sync.by_files(only_camille_photos, dest="/home/tad/Pictures/camille")
 ```
 
 ### Example 3: using new file monitoring function
@@ -105,15 +105,15 @@ for new files. When new files are found, they're copied to the local directory
 specified by the `dest` argument (current working directory by default).
 
 ```python
-import tfatool.sync
+from tfatool import sync
 
 # Sync forever
-tfatool.sync.by_new_arrivals(dest="/home/tad/Pictures/new")
+sync.by_new_arrivals(dest="/home/tad/Pictures/new")
 
 # Sync only .raw files (forever) that are smaller than 3 MB
 is_raw = lambda f: f.filename.lower.endswith(".raw", ".cr2")
 is_small = lambda f: f.size < 3e6
-tfatool.sync.by_new_arrivals(is_raw, is_small, dest="/home/tad/Pictures/raw")
+sync.by_new_arrivals(is_raw, is_small, dest="/home/tad/Pictures/raw")
 ```
 
 # Installation
