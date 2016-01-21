@@ -1,10 +1,11 @@
 
 import logging
 import time
-from pathlib import PosixPath, Path
+from pathlib import Path
+from urllib.parse import urljoin
 import requests
-from . import cgi
-from .cgi import URL, DEFAULT_DIR
+from . import command
+from .info import URL, DEFAULT_DIR
 
 
 logger = logging.getLogger(__name__)
@@ -17,7 +18,7 @@ def by_new_arrivals(*filters, remote_dir=DEFAULT_DIR, dest="."):
     `filters`, sync them with `dest` local directory."""
     old_files = set()
     while True:
-        new_files = set(cgi.list_files(*filters, remote_dir=remote_dir))
+        new_files = set(command.list_files(*filters, remote_dir=remote_dir))
         if old_files and old_files < new_files:
             new_arrivals = new_files - old_files
             logger.info("Files to sync:\n{}".format(
@@ -29,14 +30,14 @@ def by_new_arrivals(*filters, remote_dir=DEFAULT_DIR, dest="."):
 
 
 def by_files(to_sync, dest="."):
-    """Sync a given list of files from `cgi.list_files` to `dest` dir"""
+    """Sync a given list of files from `command.list_files` to `dest` dir"""
     for f in to_sync:
         _sync_file(dest, f)
 
 
 def by_time(*filters, remote_dir=DEFAULT_DIR, dest=".", count=1):
     """Sync most recent file by date, time attribues"""
-    files = cgi.list_files(*filters, remote_dir=remote_dir)
+    files = command.list_files(*filters, remote_dir=remote_dir)
     most_recent = sorted(files, key=lambda f: (f.date, f.time))
     to_sync = most_recent[-count:]
     logger.info("Files to sync:\n{}".format(
@@ -47,7 +48,7 @@ def by_time(*filters, remote_dir=DEFAULT_DIR, dest=".", count=1):
 
 def by_name(*filters, remote_dir=DEFAULT_DIR, dest=".", count=1):
     """Sync files whose filename attribute is highest in alphanumeric order"""
-    files = cgi.list_files(*filters, remote_dir=remote_dir)
+    files = command.list_files(*filters, remote_dir=remote_dir)
     greatest = sorted(files, key=lambda f: f.filename)
     to_sync = greatest[-count:]
     logger.info("Files to sync:\n{}".format(
@@ -62,18 +63,16 @@ def _sync_file(destination_dir, fileinfo):
         logger.info("File '{}' already exists; not syncing from SD card".format(
                     str(local_path)))
     else:
-        remote_path = PosixPath(fileinfo.directory, fileinfo.filename)
         logger.info("Copying remote file {} to {}".format(
-                    str(remote_path), str(local_path)))
+                    fileinfo.filename, str(local_path)))
         streaming_file = _get_file(fileinfo)
         _write_file(str(local_path), streaming_file)
 
 
 def _get_file(fileinfo):
-    path = PosixPath(fileinfo.directory, fileinfo.filename)
-    flashair_url = (URL + str(path)).encode("UTF-8")
-    logger.debug("Requesting file: {}".format(flashair_url)) 
-    request = requests.get(flashair_url, stream=True)
+    url = urljoin(URL, fileinfo.directory, fileinfo.filename)
+    logger.debug("Requesting file: {}".format(url)) 
+    request = requests.get(url, stream=True)
     return request
 
 
