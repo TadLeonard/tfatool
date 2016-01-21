@@ -1,9 +1,9 @@
-
 import logging
 import time
-from pathlib import Path
+from pathlib import Path, PosixPath
 from urllib.parse import urljoin
 import requests
+import tqdm
 from . import command
 from .info import URL, DEFAULT_DIR
 
@@ -16,10 +16,12 @@ def by_new_arrivals(*filters, remote_dir=DEFAULT_DIR, dest="."):
     """Monitor `remote_dir` on FlashAir card for new files.
     When new files are found, should they pass all of the given
     `filters`, sync them with `dest` local directory."""
-    old_files = set()
+    old_files = set(command.list_files(*filters, remote_dir=remote_dir))
+    logger.info("Ready to sync new files ({:d} existing files ignored)".format(
+                len(old_files)))
     while True:
         new_files = set(command.list_files(*filters, remote_dir=remote_dir))
-        if old_files and old_files < new_files:
+        if old_files < new_files:
             new_arrivals = new_files - old_files
             logger.info("Files to sync:\n{}".format(
                 "\n".join("  " + f.filename for f in new_arrivals)))
@@ -66,21 +68,29 @@ def _sync_file(destination_dir, fileinfo):
         logger.info("Copying remote file {} to {}".format(
                     fileinfo.filename, str(local_path)))
         streaming_file = _get_file(fileinfo)
-        _write_file(str(local_path), streaming_file)
+        _write_file(str(local_path), fileinfo, streaming_file)
 
 
 def _get_file(fileinfo):
-    url = urljoin(URL, fileinfo.directory, fileinfo.filename)
-    logger.debug("Requesting file: {}".format(url)) 
+    url = URL + "/" + str(PosixPath(fileinfo.directory, fileinfo.filename))
+    logger.info("Requesting file: {}".format(url)) 
     request = requests.get(url, stream=True)
     return request
 
 
-def _write_file(local_path, response):
+def _write_file(local_path, fileinfo, response):
+    start = time.time() 
+    pbar = tqdm.tqdm(total=fileinfo.size)
     if response.status_code == 200:
         with open(local_path, "wb") as outfile:
-            for chunk in response.iter_content(10**6):
+            for chunk in response.iter_content(5*10**5):
+                pbar.update(len(chunk))
                 outfile.write(chunk)
     else:
         raise requests.RequestException("Expected status code 200")
+    pbar.close()
+    duration = time.time() - start
+    logger.info("Wrote {} in {:0.2f} s ({:0.2f} MB/s)".format(
+                fileinfo.filename, duration,
+                fileinfo.size / (duration * 10 ** 6)))
 
