@@ -1,10 +1,52 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from tfatool import config, cgi
+from requests import RequestException
 
 
-parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+parser = ArgumentParser()
 parser.add_argument("-m", "--mastercode", default="BEEFBEEFBEEF",
                     help="12-digit hex mastercode to enable configuration "
-                         "of the FlashAir device (default: %default)")
-parser.add_argument("
+                         "of the FlashAir device")
+
+wifi = parser.add_argument_group("WiFi settings")
+wifi.add_argument("-t", "--wifi-timeout", help="set WiFi timeout of device")
+wifi.add_argument("-w", "--wifi-mode", help="set WiFi mode of device",
+                  choices=[mode.name for mode in config.WifiMode])
+wifi.add_argument("-W", "--wifi-mode-on-boot", action="store_true",
+                  help="set the WiFi mode on next boot, not immediately")
+wifi.add_argument("-k", "--wifi-key", help="set WiFi security key")
+wifi.add_argument("-K", "--passthrough-key",
+                  help="set internet passthrough security key")
+wifi.add_argument("-s", "--wifi-ssid", help="set WiFi SSID")
+wifi.add_argument("-S", "--passthrough-ssid",
+                  help="set internet passthrough SSID")
+
+other = parser.add_argument_group("Misc settings")
+other.add_argument("--app-info", help="set application-specific info")
+other.add_argument("--bootscreen-path", help="set path to boot screen image")
+other.add_argument("--clear-mastercode")
+other.add_argument("--timezone", type=int,
+                   help="set timezone in hours offset (e.g. -8)")
+other.add_argument("-d", "--drive-mode", help="set WebDAV drive mode",
+                   choices=[mode.name for mode in config.DriveMode])
+
+
+def run():
+    args = parser.parse_args()
+    params = ((param, getattr(args, param.name))
+              for param in config.Param
+              if getattr(args, param.name) is not None)
+    params = dict(params)
+    cgi_params = config.config(params)
+    config.post(cgi_params)
+
+
+if __name__ == "__main__":
+    with cgi.session:
+        try:
+            run()
+        except RequestException as e:
+            print("\nHTTP request exception: {}".format(e))
+
