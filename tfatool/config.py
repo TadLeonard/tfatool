@@ -2,7 +2,7 @@ import logging
 from enum import Enum
 from functools import partial
 from . import cgi
-from .info import URL
+from .info import URL, DEFAULT_MASTERCODE
 
 
 class Param(str, Enum):
@@ -44,7 +44,7 @@ class DriveMode(_ModeValue):
     upload = 2  # enabled, read AND write allowed
 
 
-def config(param_map, mastercode="BEEFBEEFBEEF"):
+def config(param_map, mastercode=DEFAULT_MASTERCODE):
     """Takes a dictionary of {Param.key: value} and
     returns a dictionary of processed keys and values to be used in the
     construction of a POST request to FlashAir's config.cgi"""
@@ -63,7 +63,7 @@ def _process_params(params):
 def post(param_map, url=URL):
     """Posts a `param_map` created with `config` to
     the FlashAir config.cgi entrypoint"""
-    prepped_request = _prep_post(param_map, url=url)
+    prepped_request = _prep_post(url=url, **param_map)
     return cgi.send(prepped_request)
 
 

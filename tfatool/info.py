@@ -1,4 +1,5 @@
 
 URL = "http://flashair/"
 DEFAULT_DIR = "/DCIM/100__TSB"
+DEFAULT_MASTERCODE = "BEEFBEEFBEEF"
 
