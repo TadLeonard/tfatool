@@ -8,22 +8,6 @@ from .info import URL, DEFAULT_DIR
 logger = logging.getLogger(__name__)
 
 
-class Operation(IntEnum):
-    list_files = 100
-    count_files = 101
-
-
-def _get(operation: Operation, url=URL, **params):
-    """HTTP GET of the FlashAir command.cgi entrypoint"""
-    prepped_request = _prep_get(operation, url=url, **params)
-    return cgi.send(prepped_request)
-
-
-def _prep_get(operation: Operation, url=URL, **params):
-    params.update(op=int(operation))  # op param required
-    return cgi.prep_get(cgi.Entrypoint.command, url=url, **params)
-
-
 ##################
 # command.cgi API
 
@@ -53,4 +37,22 @@ def _split_file_list(text):
             d, f, size, a, date, time = groups
             yield FileInfo(d, f, int(size), a, int(date), int(time))
 
+
+########################################
+# command.cgi request prepping, sending
+
+class Operation(IntEnum):
+    list_files = 100
+    count_files = 101
+
+
+def _get(operation: Operation, url=URL, **params):
+    """HTTP GET of the FlashAir command.cgi entrypoint"""
+    prepped_request = _prep_get(operation, url=url, **params)
+    return cgi.send(prepped_request)
+
+
+def _prep_get(operation: Operation, url=URL, **params):
+    params.update(op=int(operation))  # op param required
+    return cgi.prep_get(cgi.Entrypoint.command, url=url, **params)
 
