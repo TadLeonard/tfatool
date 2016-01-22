@@ -18,8 +18,8 @@ def test_invalid_timeout_value():
 
 
 def test_valid_timeout_value():
-    params = {Param.wifi_timeout: 120}
-    assert config(params)["APPAUTOTIME"] == 120000
+    params = {Param.wifi_timeout: 120.5201}
+    assert config(params)["APPAUTOTIME"] == 120520
     
 
 def test_full_config():
