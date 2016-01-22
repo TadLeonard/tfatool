@@ -19,24 +19,24 @@ class Param(str, Enum):
     drive_mode = "WEBDAV"  # set FlashAir drive (WebDAV)
     
 
-class ModeValue(int, Enum): ...
+class _ModeValue(int, Enum): ...
  
 
-class WifiMode(ModeValue):
+class WifiMode(_ModeValue):
     """Wireless modes effective IMMEDIATELY"""
     access_point = 0
     station = 2
     passthrough = 3  # for wireless pass through (FW 2.00.02+)
 
 
-class WifiModeOnBoot(ModeValue): 
+class WifiModeOnBoot(_ModeValue):
     """Wireless modes effective upon REBOOT of the device"""
     access_point = 4
     station = 5
     passthrough = 6
 
 
-class DriveMode(ModeValue):
+class DriveMode(_ModeValue):
     disable = 0  # FlashAir Drive disabled
     enable = 1  # enabled, only read is allowed
     # NOTE: for uploads to work, you also need UPLOAD=1 in the config file
@@ -53,7 +53,7 @@ def config(param_map, mastercode="BEEFBEEFBEEF"):
 def _process_params(params):
     for param, value in params.items():
         assert param in Param, "Invalid param: {}".format(param)
-        yield param.value, processors[param](value)
+        yield param.value, value_validators[param](value)
 
 
 def post(param_map, url=URL):
@@ -65,7 +65,18 @@ def post(param_map, url=URL):
 # Functions for creating config POST parameter values
 
 
-def timeout(seconds: float):
+value_validators = {}
+
+
+def _validator(parameter):
+    def wrapper(fn):
+        value_validators[parameter] = fn
+        return fn
+    return wrapper
+
+
+@_validator(Param.wifi_timeout)
+def _validate_timeout(seconds: float):
     """Creates an int from 60000 to 4294967294 that represents a
     valid millisecond wireless LAN timeout"""
     param_value = int(seconds * 1000)
@@ -73,31 +84,44 @@ def timeout(seconds: float):
     return param_value
 
 
-def info(info: str):
+@_validator(Param.app_info)
+def _validate_app_info(info: str):
     assert 1 <= len(info) <= 16
     return info
 
 
-def wifi(mode: ModeValue):
+@_validator(Param.wifi_mode)
+def _validate_wifi_mode(mode: _ModeValue):
     assert mode in WifiMode or mode in WifiModeOnBoot
     return int(mode) 
 
 
-def key(network_key: str):
+@_validator(Param.wifi_key)
+def _validate_wifi_key(network_key: str):
     assert 0 <= len(network_key) <= 63
     return network_key
 
 
-def ssid(network_ssid: str):
+@_validator(Param.wifi_ssid)
+def _validate_wifi_ssid(network_ssid: str):
     assert 1 <= len(network_ssid) <= 32
     return network_ssid
 
 
-passthrough_key = key
-passthrough_ssid = ssid
+@_validator(Param.passthrough_key)
+def _validate_passthrough_key(network_key: str):
+    assert 0 <= len(network_key) <= 63
+    return network_key
 
 
-def mastercode(code: str):
+@_validator(Param.passthrough_ssid)
+def _validate_passthroughssid(network_ssid: str):
+    assert 1 <= len(network_ssid) <= 32
+    return network_ssid
+
+
+@_validator(Param.mastercode)
+def _validate_mastercode(code: str):
     assert len(code) == 12
     code = code.upper()
     valid_chars = "0123456789ABCDEF"
@@ -105,15 +129,18 @@ def mastercode(code: str):
     return code
 
 
-def bootscreen_path(path: str):
+@_validator(Param.bootscreen_path)
+def _validate_bootscreen_path(path: str):
     return path
 
 
-def clear_mastercode(_):
+@_validator(Param.clear_mastercode)
+def _validate_clear_mastercode(_):
     return 1
 
 
-def timezone(hours_offset: int):
+@_validator(Param.timezone)
+def _validate_timezone(hours_offset: int):
     """Creates an int from -48 to 36 that represents the timezone
     offset in 15-minute increments as per the FlashAir docs"""
     param_value = int(hours_offset * 4)
@@ -121,22 +148,8 @@ def timezone(hours_offset: int):
     return param_value
 
 
-def drive(mode: DriveMode):
+@_validator(Param.drive_mode)
+def _validate_drive_mode(mode: DriveMode):
     assert mode in DriveMode
     return int(mode)
 
-
-processors = {
-    Param.wifi_timeout: timeout,
-    Param.app_info: info,
-    Param.wifi_mode: wifi,
-    Param.wifi_key: key,
-    Param.wifi_ssid: ssid,
-    Param.passthrough_key: passthrough_key,
-    Param.passthrough_ssid: passthrough_ssid,
-    Param.bootscreen_path: bootscreen_path,
-    Param.mastercode: mastercode,
-    Param.clear_mastercode: clear_mastercode,
-    Param.timezone: timezone,
-    Param.drive_mode: drive,
-}
