@@ -72,7 +72,8 @@ def _sync_file(destination_dir, fileinfo):
 
 
 def _get_file(fileinfo):
-    url = URL + "/" + str(PosixPath(fileinfo.directory, fileinfo.filename))
+    img_path = urljoin(fileinfo.directory, fileinfo.filename)
+    url = urljoin(URL, img_path)
     logger.info("Requesting file: {}".format(url)) 
     request = requests.get(url, stream=True)
     return request

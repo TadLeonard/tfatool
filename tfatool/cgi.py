@@ -35,7 +35,7 @@ def prep_request(method, entrypoint, url=URL, req_kwargs=None, **params):
     req_kwargs = req_kwargs or {}
     request = requests.Request(method, resource, params=params, **req_kwargs)
     prepped = session.prepare_request(request)
-    logger.info("Request: {}".format(prepped.url))
+    logger.debug("Request: {}".format(prepped.url))
     return prepped
 
 
