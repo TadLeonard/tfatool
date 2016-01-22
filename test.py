@@ -1,4 +1,6 @@
+from urllib import parse
 from tfatool.config import config, Param, WifiMode, DriveMode
+from tfatool import command
 
 
 def test_config_construction():
@@ -43,5 +45,19 @@ def test_full_config():
                 'APPMODE': 2, 'APPNETWORKKEY': 'supersecret', 'TIMEZONE': -20,
                 'BRGSSID': 'officewifi', 'CLEARCODE': 1,
                 'MASTERCODE': 'BEEFBEEFBEEF'}
-            
     
+
+def test_command_cgi_query():
+    req = command._prep_get(command.Operation.list_files, DIR="/DCIM/WOMP")
+    _, query = parse.splitquery(req.url)
+    query_map = parse.parse_qs(query)
+    assert query_map == {"DIR": ["/DCIM/WOMP"], "op": ["100"]}
+
+
+def test_command_cgi_url():
+    req = command._prep_get(command.Operation.list_files, DIR="/DCIM/WOMP",
+                            url="http://192.168.0.1")
+    print(req.url)
+    url, _ = parse.splitquery(req.url)
+    assert url == "http://192.168.0.1/command.cgi"
+
