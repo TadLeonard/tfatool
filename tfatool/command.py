@@ -1,4 +1,5 @@
 import logging
+
 from collections import namedtuple
 from enum import IntEnum
 from . import cgi

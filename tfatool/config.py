@@ -1,5 +1,6 @@
 import logging
 from enum import Enum
+from functools import partial
 from . import cgi
 from .info import URL
 
@@ -44,6 +45,9 @@ class DriveMode(_ModeValue):
 
 
 def config(param_map, mastercode="BEEFBEEFBEEF"):
+    """Takes a dictionary of {Param.key: value} and
+    returns a dictionary of processed keys and values to be used in the
+    construction of a POST request to FlashAir's config.cgi"""
     pmap = {Param.mastercode: mastercode}
     pmap.update(param_map)
     processed_params = dict(_process_params(pmap))
@@ -57,13 +61,17 @@ def _process_params(params):
 
 
 def post(param_map, url=URL):
-    logger.info("Posting config params: {}".format(params)) 
-    return cgi.post(url, params=param_map)
+    """Posts a `param_map` created with `config` to
+    the FlashAir config.cgi entrypoint"""
+    prepped_request = _prep_post(param_map, url=url)
+    return cgi.send(prepped_request)
+
+
+_prep_post = partial(cgi.prep_post, cgi.Entrypoint.config)
 
 
 ######################################################
 # Functions for creating config POST parameter values
-
 
 value_validators = {}
 
