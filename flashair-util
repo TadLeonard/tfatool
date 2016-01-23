@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 #coding: UTF-8
 
-from argparse import ArgumentParser
 import logging
-from pathlib import Path
 import re
 import time
+import arrow
+
+from argparse import ArgumentParser
+from pathlib import Path
 
 from requests import RequestException
 from tfatool import command, sync, info, cgi
@@ -35,29 +37,47 @@ setup.add_argument("-r", "--remote-dir", default=info.DEFAULT_DIR,
                         info.DEFAULT_DIR))
 setup.add_argument("-d", "--local-dir", default=".",
                    help="local directory to work with (default: working dir)")
-setup.add_argument("-j", "--only-jpg", action="store_true",
+
+filt = parser.add_argument_group("File filters")
+filt.add_argument("-j", "--only-jpg", action="store_true",
                    help="filter for only JPEG files")
-setup.add_argument("-t", "--datetime-after",
-                   help="work on only files AFTER datetiem similar to "
+filt.add_argument("-n","--n-files", type=int, default=1,
+                   help="Number of files to move in --sync-once mode")
+filt.add_argument("-k", "--match-regex", default=None,
+                   help="filter for files that match the given pattern")
+filt.add_argument("-t", "--earliest-date",
+                   help="work on only files AFTER datetime similar to "
                         "YYYY-MM-DD HH:SS")
-setup.add_argument("-T", "--datetime-before",
+filt.add_argument("-T", "--latest-date",
                    help="work on only files BEFORE datetime similar to "
                         "YYYY-MM-DD HH:SS")
-setup.add_argument("-k", "--match-regex", default=None,
-                   help="filter for files that match the given pattern")
-setup.add_argument("-n","--n-files", type=int, default=1,
-                   help="Number of files to move in --sync-once mode")
 
 
 def run():
     args = parser.parse_args()
     filters = []
+
+    # filename filters
     if args.only_jpg:
         jpg_filter = lambda f: f.filename.lower().endswith("jpg")
         filters.append(jpg_filter)
     if args.match_regex:
         regex_filter = lambda f: re.match(args.match_regex, f.filename)
         filters.append(regex_filter)
+
+    # datetme filters
+    if args.earliest_date:
+        try:
+            earliest_date = arrow.get(args.earliest_date)
+            filters.append(lambda f: f.datetime > earliest_date)
+        except Arrow.parser.ParserError as e:
+            parser.error("Invalid earliest date: {}".format(str(e)))
+    if args.latest_date:
+        try:
+            latest_date = arrow.get(args.latest_date)
+            filters.append(lambda f: f.datetime < latest_date)
+        except arrow.parser.ParserError as e:
+            parser.error("Invalid latest date: {}".format(str(e)))
 
     try:
         if args.list_files:
@@ -118,12 +138,28 @@ def sync_loop(filters, args):
 
 def print_file_list(filters, args):
     files = command.list_files(*filters, remote_dir=args.remote_dir)
+    files = sorted(files, key=lambda f: f.datetime)
     files = list(files)
     title = "Files in {}".format(args.remote_dir)
+    nbytes = 0
     print(title)
-    print("=" * len(title))
-    print("\n".join(f.filename for f in files))
-    print("({:d} files)\n".format(len(files)))
+    print("="* len(title))
+    for f in files:
+        nbytes += f.size
+        print("{}  {}  {:0.2f}MB".format(
+              f.filename, f.datetime.format("YYYY-MM-DD  HH:mm:ss"),
+              f.size / 10**6))
+    if nbytes >= 10**8:
+        units, val = "GB", nbytes / 10**9
+    elif nbytes >= 10**5:
+        units, val = "MB", nbytes / 10**6
+    elif nbytes >= 10**2:
+        units, val = "KB", nbytes / 10**3
+    else:
+        units, val = "B", nbytes
+
+    print("({:d} files, {:0.2f} {} total)\n".format(
+          len(files), val, units))
     
 
 def print_file_count(filters, args):
