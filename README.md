@@ -128,6 +128,10 @@ Internet access to all connected clients.
 
 ```flashair-config -K supersecretekey -S coffeeshopssid -w passthrough```
 
+Set the WiFi mode *on boot* instead of immediately with the *-W* flag:
+
+```flashair-config -w station -W```
+
 
 ## Using the `tfatool` Python library
 ### Example 1: using FlashAir's command.cgi
