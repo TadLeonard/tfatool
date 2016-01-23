@@ -25,7 +25,7 @@ actions.add_argument("-s", "--sync-forever", action="store_true",
                      help="watch for new files in REMOTE_DIR, copy them to LOCAL_DIR "
                           "(runs until CTRL-C)")
 actions.add_argument("-S", "--sync-once", default=False,
-                     choices=["timestamp", "name", "all"],
+                     choices=["time", "name", "all"],
                      help="move files (all or by most recent name/timestamp) from "
                           "REMOTE_DIR to LOCAL_DIR, then quit")
 
@@ -72,15 +72,9 @@ def run():
             logger.info("Creating directory '{}'".format(args.local_dir))
             local_path.mkdir()
         if args.sync_once == "name":
-            logger.info("Retrieving {} latest files by filename".format(
-                args.n_files))
-            sync.by_name(*filters, remote_dir=args.remote_dir,  
-                         dest=args.local_dir, count=args.n_files)
-        elif args.sync_once == "timestamp":
-            logger.info("Retrieving {} latest files by timestamp".format(
-                args.n_files))
-            sync.by_time(*filters, remote_dir=args.remote_dir,  
-                         dest=args.local_dir, count=args.n_files)
+            sync_once(sync.by_name, filters, args)
+        elif args.sync_once == "time":
+            sync_once(sync.by_time, filters, args)
         elif args.sync_once == "all":
             logger.info("Retreiving ALL matched files")
             files = command.list_files(*filters, remote_dir=args.remote_dir)
@@ -90,6 +84,16 @@ def run():
                 sync_loop(filters, args)
             except KeyboardInterrupt:
                 pass
+
+
+def sync_once(by_method, filters, args):
+    logger.info("Retrieving {} latest files by {}".format(
+        args.n_files, args.sync_once))
+    try:
+        by_method(*filters, remote_dir=args.remote_dir,
+                  dest=args.local_dir, count=args.n_files)
+    except KeyboardInterrupt:
+        pass
 
 
 def sync_loop(filters, args):
