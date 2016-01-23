@@ -24,21 +24,34 @@ for more information about the FlashAir API `tfatool` takes advantage of.
 ### Help menu
 ```
 $ flashair-util -h
-usage: flashair-util [-h] [-r REMOTE_DIR] [-d LOCAL_DIR] [-l] [-c] [-s]
-                     [-S {timestamp,name}] [-n N_FILES] [-j] [-k MATCH_REGEX]
+usage: flashair-util [-h] [-l] [-c] [-s] [-S {timestamp,name,all}]
+                     [-r REMOTE_DIR] [-d LOCAL_DIR] [-j] [-k MATCH_REGEX]
+                     [-n N_FILES]
 
 optional arguments:
   -h, --help            show this help message and exit
-  -r REMOTE_DIR, --remote-dir REMOTE_DIR
-  -d LOCAL_DIR, --local-dir LOCAL_DIR
+
+Actions:
   -l, --list-files
   -c, --count-files
-  -s, --sync-forever
-  -S {timestamp,name}, --sync-once {timestamp,name}
-  -n N_FILES, --n-files N_FILES
-  -j, --only-jpg
+  -s, --sync-forever    watch for new files in REMOTE_DIR, copy them to
+                        LOCAL_DIR (runs until CTRL-C)
+  -S {timestamp,name,all}, --sync-once {timestamp,name,all}
+                        move files (all or by most recent name/timestamp) from
+                        REMOTE_DIR to LOCAL_DIR, then quit
+
+Setup:
+  -r REMOTE_DIR, --remote-dir REMOTE_DIR
+                        FlashAir directory to work with (default:
+                        /DCIM/100__TSB
+  -d LOCAL_DIR, --local-dir LOCAL_DIR
+                        local directory to work with (default: current working
+                        dir)
+  -j, --only-jpg        only work with JPEG files
   -k MATCH_REGEX, --match-regex MATCH_REGEX
                         filter for files that match the given pattern
+  -n N_FILES, --n-files N_FILES
+                        Number of files to move in --sync-once mode
 ```
 
 ### Example 1: sync newly created files on FlashAir card
