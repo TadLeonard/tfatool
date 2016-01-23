@@ -1,16 +1,21 @@
 # tfatool
 
-Tools for using the Toshiba FlashAir wireless SD card. `tfatool` is
-both a library to ease programming around this device and a set of scripts to ease
-the command line usage of it.
-See [FlashAir API documentation](https://flashair-developers.com/en/documents/api/) for more information.
+This package provides easy access to the features of
+Toshiba's FlashAir wireless SD card. As a library, this project provides
+a simple abstraction of the FlashAir API. As a set of scripts, `tfatool`
+gives the user a way of synchronizing files and configuring the device
+from the command line.
+
 Features include:
 
+* `flashair-util`: a command line tool for managing files on FlashAir (syncing/copying files, listing files, etc.)
+* `flashair-config`: a command line tool for configuring FlashAir
 * `tfatool.command`: abstraction of FlashAir's [command.cgi](https://flashair-developers.com/en/documents/api/commandcgi/)
 * `tfatool.config`: abstraction of FlashAir's [config.cgi](https://flashair-developers.com/en/documents/api/configcgi/)
 * `tfatool.sync`: functions to facilitate copying/syncing files from FlashAir
-* `flashair-util`: a command line tool for managing files on FlashAir (syncing/copying files, listing files, etc.)
-* `flashair-config`: a command line tool for configuring FlashAir
+
+See [FlashAir API documentation](https://flashair-developers.com/en/documents/api/)
+for more information about the FlashAir API `tfatool` takes advantage of.
 <img align="right" src="_docs/flashair.jpg">
 
 # Usage
@@ -110,24 +115,24 @@ Misc settings:
 
 ### Sample configurations of FlashAir
 
+Set the FlashAir WiFi network's SSID and password.
+
+```flashair-config -k supersecretekey -s myflashairnetwork```
+
 Prepare for Internet passthrough mode. This sets the LAN SSID, password, and
 the FlashAir WiFi mode. If this is successful, the device will pass through
 Internet access to all connected clients.
 
 ```flashair-config -K supersecretekey -S coffeeshopssid -w passthrough```
 
-Set the FlashAir WiFi network's SSID and password.
 
-```flashair-config -k supersecretekey -s myflashairnetwork```
-
-
-## Using the `tfatool` library
+## Using the `tfatool` Python library
 ### Example 1: using FlashAir's command.cgi
 ```python
-import tfatool.cgi
+import tfatool.command
 
 def list_and_count_files():
-  flashair_files = tfatool.cgi.list_files()  # list files in /DCIM/100__TSB by default
+  flashair_files = tfatool.list_files()  # list files in /DCIM/100__TSB by default
   n_flashair_files = tfatool.cgi.count_files(DIR="/DCIM")  # count in specific directory
   special_files = tfatool.cgi.list_files(DIR="/DCIM/my_special_folder")
   
