@@ -76,7 +76,7 @@ Some time later, a new photo appears in */DCIM/100__TSB*.
 2016-01-22 21:30:05,866 | INFO | tfatool.sync | Wrote IMG_0802.JPG in 1.00 s (4.31 MB, 4.31 MB/s)
 ```
 
-### Example 2: sync subset of files on flashair just once
+### Example 2: sync subset of files on flashair *just once*
 
 Sync JPEG files that start with *IMG_08* with the local *stuff/* directory.
 Notice that files which already exist in *stuff/* are not overwritten.
@@ -94,6 +94,14 @@ flashair-util -j -k "IMG_08.+" -S all -d stuff/
 2016-01-22 22:29:17,834 | INFO | tfatool.sync | Requesting file: http://flashair/DCIM/100__TSB/IMG_0803.JPG
 2016-01-22 22:29:30,855 | INFO | tfatool.sync | Wrote IMG_0803.JPG in 10.07 s (4.55 MB, 0.45 MB/s)
 ``` 
+
+Other simple `--sync-once` examples include:
+
+* Just grab the most recent JPEG: `flashair-util -S timestamp -n 1`
+* Sync most recent 5 files by timestamp: `flashair-util -S timestamp --n-files 5`
+* Of all files that end in `08.JPG`, sync the 10 
+  greatest filenames: `flashair-util -S name --n-files 10 -k '.+08\.JPG'`
+
 
 ### Example 3: list all JPEG files on FlashAir device
 ```
