@@ -1,16 +1,13 @@
 import os
-from setuptools import setup
+import pypandoc
 import tfatool._version
+from setuptools import setup
 
 
 version = tfatool._version.__version__
 url = "https://github.com/TadLeonard/tfatool"
 download = "{}/archive/{}.tar.gz".format(url, version)
-
-
-def read(fname):
-    with open(fname) as f:
-        return f.read()
+long_description = pypandoc.convert('README.md', 'rst')
 
 
 setup(name="tfatool",
@@ -21,7 +18,7 @@ setup(name="tfatool",
       packages=["tfatool"],
       description=("Tools for syncing files with the "
                    "Toshiba FlashAir wireless SD card"),
-      long_description=read("README.md"),
+      long_description=long_description,
       include_package_data=True,
       package_data={"": ["README.md"]},
       author="Tad Leonard",
