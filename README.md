@@ -1,16 +1,18 @@
 # tfatool
 
-This package provides easy access to the features of
+This package provides easy access to
 Toshiba's FlashAir wireless SD card. As a library, this project provides
 a simple abstraction of the FlashAir API. As a set of scripts, `tfatool`
 gives the user a way of synchronizing files and configuring the device
-from the command line.
+from the command line. Monitoring FlashAir for new files and syncing
+them with a local directory is an easy one-liner:
+`flashair-util -s -d /home/tad/Photos`!
 
 <img align="right" src="_docs/flashair.jpg">
 
 Features include:
 
-* `flashair-util`: a command line tool for syncing, copying, listing file on FlashAir
+* `flashair-util`: a command line tool for syncing, copying, listing files on FlashAir
 * `flashair-config`: a command line tool for configuring FlashAir
 * `tfatool.command`: abstraction of FlashAir's [command.cgi](https://flashair-developers.com/en/documents/api/commandcgi/)
 * `tfatool.config`: abstraction of FlashAir's [config.cgi](https://flashair-developers.com/en/documents/api/configcgi/)
@@ -66,7 +68,7 @@ $ flashair-util -s -d path/to/files --only-jpg
 2016-01-22 21:29:27,412 | INFO | tfatool.sync | Ready to sync new files (39 existing files ignored)
 ```
 
-Some time later, a new photo appears in */DCIM/100__TSB*.
+Some time later, a new photo appears in the default remote directory.
 
 ```
 2016-01-22 21:30:05,770 | INFO | tfatool.sync | Files to sync:
@@ -76,10 +78,10 @@ Some time later, a new photo appears in */DCIM/100__TSB*.
 2016-01-22 21:30:05,866 | INFO | tfatool.sync | Wrote IMG_0802.JPG in 1.00 s (4.31 MB, 4.31 MB/s)
 ```
 
-### Example 2: sync subset of files on flashair *just once*
+### Example 2: sync subset of files on FlashAir *just once*
 
-Sync JPEG files that start with *IMG_08* with the local *stuff/* directory.
-Notice that files which already exist in *stuff/* are not overwritten.
+Sync JPEG files that start with *IMG_08* with the local `stuff/` directory.
+Notice that files which already exist in `stuff/` are not overwritten.
 
 ```
 flashair-util -j -k "IMG_08.+" -S all -d stuff/
@@ -103,7 +105,7 @@ Other simple `--sync-once` examples include:
   greatest filenames: `flashair-util -S name --n-files 10 -k '.+08\.JPG'`
 
 
-### Example 3: list all JPEG files on FlashAir device
+### Example 3: list all JPEG files on FlashAir
 ```
 $ flashair-util --list-files --only-jpg
 
@@ -186,22 +188,25 @@ Set the WiFi mode *on boot* instead of immediately with the *-W* flag:
 ```python
 from tfatool import command
 
-def list_and_count_files():
-  flashair_files = command.list_files()  # list files in /DCIM/100__TSB by default
-  n_flashair_files = command.count_files(DIR="/DCIM")  # count in specific directory
-  special_files = command.list_files(DIR="/DCIM/my_special_folder")
+# get files in a FlashAir directory as a list of namedtuples
+# each namedtuple has six attributes: directory, filename, time, date, etc
+flashair_files = command.list_files()  # list files in /DCIM/100__TSB by default
+special_files = command.list_files(DIR="/DCIM/my_special_folder")
 
-  
-def examine_large_files():
-  # the list_files CGI command provides six interesting file attributes
-  for f in command.list_files():
-    if f.filename.lower().endswith(".raw", ".cr2"):
-      continue  # skip raw files
-    if size > 10**7:
-      # file size greater than 10 MB!
-      print("Huge file ({:d} bytes): {}/{} created on {}-{}".format(
-            f.size, f.directory, f.filename, f.date, f.time))
-    print(f.time, f.date)  # time and date encoded as integers
+# get an integer count of files in a certain dir
+n_flashair_files = command.count_files(DIR="/DCIM")  # count in specific directory
+
+
+# file list fn takes optional filters
+# here we cull any RAW files (.raw or .cr2) and files of a certain name
+# you can combine any number of filters
+filter_raw = lambda f: not f.filename.lower().endswith(".raw", ".cr2")
+filter_name = lambda f: f.filename.lower()startswith("IMG_08")
+filter_date = lambda f: f.date > 33002  # look at FlashAir docs for date encoding
+certain_files = command.list_files(filter_raw, filter_name, filter_date)
+
+for f in certain_files:
+    print("{:s}: {:0.2f} MB".format(f.filename, f.size / 10**6))
 ```
 
 ### Example 2: using file synchronization functions
@@ -210,10 +215,11 @@ def examine_large_files():
 from tfatool import sync
 
 # Sync files as a one-off action
+# here we sync the most recent files sorted by (file.date, file.time)
 sync.by_timestamp(count=10)  # places most recent files in CWD by default
 sync.by_timestamp(count=15, dest="/home/tad/Pictures")
 
-# Sync specific files selected from list_files
+# Sync specific files selected from files list
 from tfatool import command
 all_files = command.list_files()
 only_camille_photos = [f for f in all_files if "camille" in f.filename.lower()]
