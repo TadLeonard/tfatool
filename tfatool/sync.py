@@ -25,8 +25,7 @@ def by_new_arrivals(*filters, remote_dir=DEFAULT_DIR, dest="."):
             new_arrivals = new_files - old_files
             logger.info("Files to sync:\n{}".format(
                 "\n".join("  " + f.filename for f in new_arrivals)))
-            for f in new_arrivals:
-                _sync_file(dest, f)
+            by_files(new_arrivals, dest=dest)
         old_files = new_files
         time.sleep(1)
 
@@ -44,8 +43,7 @@ def by_time(*filters, remote_dir=DEFAULT_DIR, dest=".", count=1):
     to_sync = most_recent[-count:]
     logger.info("Files to sync:\n{}".format(
         "\n".join("  " + f.filename for f in to_sync)))
-    for f in to_sync[::-1]:
-        _sync_file(dest, f)
+    by_files(to_sync[::-1], dest=dest)
 
 
 def by_name(*filters, remote_dir=DEFAULT_DIR, dest=".", count=1):
@@ -55,8 +53,7 @@ def by_name(*filters, remote_dir=DEFAULT_DIR, dest=".", count=1):
     to_sync = greatest[-count:]
     logger.info("Files to sync:\n{}".format(
         "\n".join("  " + f.filename for f in to_sync)))
-    for f in to_sync[::-1]:
-        _sync_file(dest, f)
+    by_files(to_sync[::-1], dest=dest)
 
 
 def _sync_file(destination_dir, fileinfo):
@@ -72,7 +69,7 @@ def _sync_file(destination_dir, fileinfo):
 
 
 def _get_file(fileinfo):
-    img_path = urljoin(fileinfo.directory, fileinfo.filename)
+    img_path = str(PosixPath(fileinfo.directory, fileinfo.filename))
     url = urljoin(URL, img_path)
     logger.info("Requesting file: {}".format(url)) 
     request = requests.get(url, stream=True)

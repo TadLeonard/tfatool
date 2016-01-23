@@ -43,20 +43,46 @@ optional arguments:
 
 ### Example 1: sync newly created files on FlashAir card
 Watch for new files on the FlashAir SD card. When new files are found,
-write them to a specified directory.
+write them to a specified local directory.
 
 ```
-$ flashair-util -s -d path/to/images 
-INFO:__main__:Syncing files from /DCIM/100__TSB to path/to/images
-INFO:__main__:Waiting for newly arrived files...
-INFO:tfatool.sync:Files to sync:
-  IMG_0672.CR2
-  IMG_0672.JPG
-INFO:tfatool.sync:Copying remote file /DCIM/100__TSB/IMG_0672.CR2 to path/to/images/IMG_0672.CR2
+$ flashair-util -s -d path/to/files --only-jpg
+2016-01-22 21:29:12,336 | INFO | __main__ | Syncing files from /DCIM/100__TSB to path/to/files
+2016-01-22 21:28:44,035 | INFO | __main__ | Creating directory 'path/to/files'
+2016-01-22 21:29:12,337 | INFO | __main__ | Waiting for newly arrived files...
+2016-01-22 21:29:27,412 | INFO | tfatool.sync | Ready to sync new files (39 existing files ignored)
+
+
+Some time later, a new photo appears in */DCIM/100__TSB*.
+
+```
+2016-01-22 21:30:05,770 | INFO | tfatool.sync | Files to sync:
+  IMG_0802.JPG
+2016-01-22 21:30:05,770 | INFO | tfatool.sync | Copying remote file IMG_0802.JPG to stuff/IMG_0802.JPG
+2016-01-22 21:30:05,771 | INFO | tfatool.sync | Requesting file: http://flashair/DCIM/IMG_0802.JPG
+2016-01-22 21:30:05,866 | INFO | tfatool.sync | Wrote IMG_0802.JPG in 0.04 s (4.31 MB, 120.41 MB/s)
 ```
 
+### Example 2: sync subset of files on flashair just once
 
-### Example 2: list all JPEG files on FlashAir device
+Sync JPEG files that start with *IMG_08* with the local *stuff/* directory.
+Notice that files which already exist in *stuff/* are not overwritten.
+
+```
+flashair-util -j -k "IMG_08.+" -S all -d stuff/
+2016-01-22 22:29:02,228 | INFO | __main__ | Syncing files from /DCIM/100__TSB to stuff/
+2016-01-22 22:29:02,229 | INFO | __main__ | Retreiving ALL matched files
+2016-01-22 22:29:02,330 | INFO | tfatool.sync | File 'stuff/IMG_0800.JPG' already exists; not syncing from SD card
+2016-01-22 22:29:02,331 | INFO | tfatool.sync | Copying remote file IMG_0801.JPG to stuff/IMG_0801.JPG
+2016-01-22 22:29:02,331 | INFO | tfatool.sync | Requesting file: http://flashair/DCIM/100__TSB/IMG_0801.JPG
+2016-01-22 22:29:17,831 | INFO | tfatool.sync | Wrote IMG_0801.JPG in 9.40 s (4.31 MB, 0.46 MB/s)
+2016-01-22 22:29:17,833 | INFO | tfatool.sync | File 'stuff/IMG_0802.JPG' already exists; not syncing from SD card
+2016-01-22 22:29:17,833 | INFO | tfatool.sync | Copying remote file IMG_0803.JPG to stuff/IMG_0803.JPG
+2016-01-22 22:29:17,834 | INFO | tfatool.sync | Requesting file: http://flashair/DCIM/100__TSB/IMG_0803.JPG
+2016-01-22 22:29:30,855 | INFO | tfatool.sync | Wrote IMG_0803.JPG in 10.07 s (4.55 MB, 0.45 MB/s)
+``` 
+
+### Example 3: list all JPEG files on FlashAir device
 ```
 $ flashair-util --list-files --only-jpg
 
