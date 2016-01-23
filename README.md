@@ -59,8 +59,8 @@ Some time later, a new photo appears in */DCIM/100__TSB*.
 2016-01-22 21:30:05,770 | INFO | tfatool.sync | Files to sync:
   IMG_0802.JPG
 2016-01-22 21:30:05,770 | INFO | tfatool.sync | Copying remote file IMG_0802.JPG to stuff/IMG_0802.JPG
-2016-01-22 21:30:05,771 | INFO | tfatool.sync | Requesting file: http://flashair/DCIM/IMG_0802.JPG
-2016-01-22 21:30:05,866 | INFO | tfatool.sync | Wrote IMG_0802.JPG in 0.04 s (4.31 MB, 120.41 MB/s)
+2016-01-22 21:30:05,771 | INFO | tfatool.sync | Requesting file: http://flashair/DCIM/100__TSB/IMG_0802.JPG
+2016-01-22 21:30:05,866 | INFO | tfatool.sync | Wrote IMG_0802.JPG in 1.00 s (4.31 MB, 4.31 MB/s)
 ```
 
 ### Example 2: sync subset of files on flashair just once
