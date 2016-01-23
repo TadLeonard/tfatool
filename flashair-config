@@ -56,6 +56,9 @@ def run():
                 config.WifiModeOnBoot[args.wifi_mode])
         else:
             parser.error("-W doesn't make sense without -w option")
+    elif args.wifi_mode:
+        params[config.Param.wifi_mode] = (
+                config.WifiMode[args.wifi_mode])
 
     cgi_params = config.config(params)
     logger.info("CGI params: {}".format(cgi_params))
