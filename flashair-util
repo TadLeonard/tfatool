@@ -87,7 +87,7 @@ def run():
 
 
 def sync_once(by_method, filters, args):
-    logger.info("Retrieving {} latest files by {}".format(
+    logger.info("Retrieving {} latest file(s) by {}".format(
         args.n_files, args.sync_once))
     try:
         by_method(*filters, remote_dir=args.remote_dir,
@@ -113,9 +113,11 @@ def sync_loop(filters, args):
 def print_file_list(filters, args):
     files = command.list_files(*filters, remote_dir=args.remote_dir)
     files = list(files)
-    print("\nFiles\n=====")
+    title = "Files in {}".format(args.remote_dir)
+    print(title)
+    print("=" * len(title))
     print("\n".join(f.filename for f in files))
-    print("({:d} files)".format(len(files)))
+    print("({:d} files)\n".format(len(files)))
     
 
 def print_file_count(filters, args):

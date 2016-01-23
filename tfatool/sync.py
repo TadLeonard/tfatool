@@ -17,9 +17,9 @@ def by_new_arrivals(*filters, remote_dir=DEFAULT_DIR, dest="."):
     """Monitor `remote_dir` on FlashAir card for new files.
     When new files are found, should they pass all of the given
     `filters`, sync them with `dest` local directory."""
+    logger.info("Building existing file list")
     old_files = set(command.list_files(*filters, remote_dir=remote_dir))
-    logger.info("Ready to sync new files ({:d} existing files ignored)".format(
-                len(old_files)))
+    _notify_sync_ready(old_files)
     while True:
         new_files = set(command.list_files(*filters, remote_dir=remote_dir))
         if old_files < new_files:
@@ -27,8 +27,14 @@ def by_new_arrivals(*filters, remote_dir=DEFAULT_DIR, dest="."):
             logger.info("Files to sync:\n{}".format(
                 "\n".join("  " + f.filename for f in new_arrivals)))
             by_files(new_arrivals, dest=dest)
+            _notify_sync_ready(old_files)
         old_files = new_files
         time.sleep(1)
+
+
+def _notify_sync_ready(old_files):
+    logger.info("Ready to sync new files ({:d} existing files ignored)".format(
+                len(old_files)))
 
 
 def by_files(to_sync, dest="."):
