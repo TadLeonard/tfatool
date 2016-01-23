@@ -58,15 +58,30 @@ def by_name(*filters, remote_dir=DEFAULT_DIR, dest=".", count=1):
 
 
 def _sync_file(destination_dir, fileinfo):
-    local_path = Path(destination_dir, fileinfo.filename)
-    if local_path.exists():
-        logger.info("File '{}' already exists; not syncing from SD card".format(
-                    str(local_path)))
+    local = Path(destination_dir, fileinfo.filename)
+    local_name = str(local)
+    remote_size = fileinfo.size
+    if local.exists():
+        local_size = local.stat().st_size
+        if local.stat().st_size == remote_size:
+            logger.info(
+                "File '{}' already exists; not syncing from SD card".format(
+                local_name))
+        else:
+            logger.warning(
+                "Removing {}: local size {} != remote size {}".format(
+                local_name, local_size, remote_size))
+            os.remove(local_name)
+            _stream_to_file(local_name, fileinfo)
     else:
-        logger.info("Copying remote file {} to {}".format(
-                    fileinfo.filename, str(local_path)))
-        streaming_file = _get_file(fileinfo)
-        _write_file_safely(str(local_path), fileinfo, streaming_file)
+        _stream_to_file(local_name, fileinfo)
+
+
+def _stream_to_file(local_name, fileinfo):
+    logger.info("Copying remote file {} to {}".format(
+                fileinfo.filename, local_name))
+    streaming_file = _get_file(fileinfo)
+    _write_file_safely(local_name, fileinfo, streaming_file)
 
 
 def _get_file(fileinfo):
