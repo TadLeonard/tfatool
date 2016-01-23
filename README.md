@@ -173,13 +173,11 @@ only_camille_photos = [f for f in all_files if "camille" in f.filename.lower()]
 sync.by_files(only_camille_photos, dest="/home/tad/Pictures/camille")
 ```
 
-### Example 3: using new file monitoring function
+### Example 4: watching for newly created files
+
 The `tfatool.sync.by_new_arrivals()` function watches your FlashAir device
 for new files. When new files are found, they're copied to the local directory
 specified by the `dest` argument (current working directory by default).
-
-
-### Example 4: watching for newly created files
 
 ```python
 from tfatool import sync
@@ -195,7 +193,7 @@ is_small = lambda f: f.size < 3e6
 sync.by_new_arrivals(is_raw, is_small, dest="/home/tad/Pictures/raw")
 ```
 
-### Example 5: sending config changes via a POST to *config.cgi*
+### Example 4: sending config changes via a POST to *config.cgi*
 
 ```python
 from tratool.config import config, Param, post
