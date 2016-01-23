@@ -37,10 +37,16 @@ setup.add_argument("-d", "--local-dir", default=".",
                    help="local directory to work with (default: working dir)")
 setup.add_argument("-j", "--only-jpg", action="store_true",
                    help="filter for only JPEG files")
+setup.add_argument("-t", "--datetime-after",
+                   help="work on only files AFTER datetiem similar to "
+                        "YYYY-MM-DD HH:SS")
+setup.add_argument("-T", "--datetime-before",
+                   help="work on only files BEFORE datetime similar to "
+                        "YYYY-MM-DD HH:SS")
 setup.add_argument("-k", "--match-regex", default=None,
                    help="filter for files that match the given pattern")
 setup.add_argument("-n","--n-files", type=int, default=1,
-                    help="Number of files to move in --sync-once mode")
+                   help="Number of files to move in --sync-once mode")
 
 
 def run():

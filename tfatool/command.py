@@ -1,4 +1,5 @@
 import logging
+import arrow
 
 from collections import namedtuple
 from enum import IntEnum
@@ -32,8 +33,8 @@ def memory_changed(url=URL):
 #####################
 # API implementation
 
-_fields = ["directory", "filename", "size", "attribute", "timeinfo"]
-FileInfo = namedtuple("FileInfo", _fields)
+FileInfo = namedtuple(
+    "FileInfo", "directory filename size attribute datetime")
 
 
 def _split_file_list(text):
@@ -43,13 +44,12 @@ def _split_file_list(text):
         if len(groups) == 6:
             directory, filename, *remaining = groups
             remaining = list(map(int, remaining))
-            size, attribute, date_val, time_val = remaining
+            size, attr_val, date_val, time_val = remaining
             timeinfo = _decode_time(date_val, time_val)
+            attribute = _decode_attribute(attr_val)
             yield FileInfo(directory, filename,
                            size, attribute, timeinfo)
 
-
-TimeInfo = namedtuple("DateInfo", "year month day hour minute second")
 
 def _decode_time(date_val: int, time_val: int):
     year = (date_val >> 9) + 1980  # 0-val is the year 1980
@@ -58,7 +58,16 @@ def _decode_time(date_val: int, time_val: int):
     hour = time_val >> 11
     minute = (time_val & (0b111111 << 6)) >> 6
     second = (time_val & 0b11111) * 2
-    return TimeInfo(year, month, day, hour, minute, second)
+    return arrow.get(year, month, day, hour, minute, second)
+
+
+AttrInfo = namedtuple(
+    "AttrInfo", "archive directly volume system_file hidden_file read_only")
+
+def _decode_attribute(attr_val: int):
+    bit_positions = reversed(range(6))
+    bit_flags = [bool(attr_val & (1 << bit)) for bit in bit_positions]
+    return AttrInfo(*bit_flags)
 
 
 ########################################
