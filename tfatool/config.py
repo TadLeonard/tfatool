@@ -87,9 +87,9 @@ def _validator(parameter):
 def _validate_timeout(seconds: float):
     """Creates an int from 60000 to 4294967294 that represents a
     valid millisecond wireless LAN timeout"""
-    param_value = int(seconds * 1000)
-    assert 60000 <= param_value <= 4294967294 
-    return param_value
+    val = int(seconds * 1000)
+    assert 60000 <= val <= 4294967294, "Bad value: {}".format(val)
+    return val
 
 
 @_validator(Param.app_info)
