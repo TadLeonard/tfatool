@@ -10,7 +10,7 @@ from the command line.
 
 Features include:
 
-* `flashair-util`: a command line tool for managing files on FlashAir (syncing/copying files, listing files, etc.)
+* `flashair-util`: a command line tool for syncing, copying, listing file on FlashAir
 * `flashair-config`: a command line tool for configuring FlashAir
 * `tfatool.command`: abstraction of FlashAir's [command.cgi](https://flashair-developers.com/en/documents/api/commandcgi/)
 * `tfatool.config`: abstraction of FlashAir's [config.cgi](https://flashair-developers.com/en/documents/api/configcgi/)
