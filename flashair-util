@@ -17,17 +17,30 @@ logging.basicConfig(level=logging.INFO, style="{",
 logging.getLogger("requests").setLevel(logging.WARNING)
 
 parser = ArgumentParser()
-parser.add_argument("-r", "--remote-dir", default=info.DEFAULT_DIR)
-parser.add_argument("-d", "--local-dir", default=".")
-parser.add_argument("-l", "--list-files", action="store_true")
-parser.add_argument("-c", "--count-files", action="store_true")
-parser.add_argument("-s", "--sync-forever", action="store_true")
-parser.add_argument("-S", "--sync-once", default=False,
-                    choices=["timestamp", "name"])
-parser.add_argument("-n","--n-files", type=int, default=1)
-parser.add_argument("-j", "--only-jpg", action="store_true")
-parser.add_argument("-k", "--match-regex", default=None,
-                    help="filter for files that match the given pattern")
+
+actions = parser.add_argument_group("Actions")
+actions.add_argument("-l", "--list-files", action="store_true")
+actions.add_argument("-c", "--count-files", action="store_true")
+actions.add_argument("-s", "--sync-forever", action="store_true",
+                     help="watch for new files in REMOTE_DIR, copy them to LOCAL_DIR "
+                          "(runs until CTRL-C)")
+actions.add_argument("-S", "--sync-once", default=False,
+                     choices=["timestamp", "name", "all"],
+                     help="move files (all or by most recent name/timestamp) from "
+                          "REMOTE_DIR to LOCAL_DIR, then quit")
+
+setup = parser.add_argument_group("Setup")
+setup.add_argument("-r", "--remote-dir", default=info.DEFAULT_DIR,
+                   help="FlashAir directory to work with (default: {}".format(
+                        info.DEFAULT_DIR))
+setup.add_argument("-d", "--local-dir", default=".",
+                   help="local directory to work with (default: current working dir)")
+setup.add_argument("-j", "--only-jpg", action="store_true",
+                   help="only work with JPEG files")
+setup.add_argument("-k", "--match-regex", default=None,
+                   help="filter for files that match the given pattern")
+setup.add_argument("-n","--n-files", type=int, default=1,
+                    help="Number of files to move in --sync-once mode")
 
 
 def run():
@@ -48,6 +61,9 @@ def run():
     except RequestException as e:
         print("\nHTTP request exception: {}".format(e))
 
+    if args.sync_once == "all" and args.n_files != 1:
+        parser.error("`--sync-once all` doesn't make sense with `--num-files N`")
+
     if args.sync_forever or args.sync_once:
         logger.info("Syncing files from {} to {}".format(
             args.remote_dir, args.local_dir))
@@ -65,6 +81,10 @@ def run():
                 args.n_files))
             sync.by_time(*filters, remote_dir=args.remote_dir,  
                          dest=args.local_dir, count=args.n_files)
+        elif args.sync_once == "all":
+            logger.info("Retreiving ALL matched files")
+            files = command.list_files(*filters, remote_dir=args.remote_dir)
+            sync.by_files(files, dest=args.local_dir)
         if args.sync_forever:
             try:
                 sync_loop(filters, args)
