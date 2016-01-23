@@ -1,3 +1,4 @@
+import os
 from setuptools import setup
 import tfatool._version
 
@@ -20,6 +21,7 @@ setup(name="tfatool",
       description=("Tools for syncing files with the "
                    "Toshiba FlashAir wireless SD card"),
       long_description=read("README.md"),
+      package_data={".": "README.md"},
       author="Tad Leonard",
       author_email="tadfleonard@gmail.com",
       keywords="wireless sd card sync toshiba flashair", 
