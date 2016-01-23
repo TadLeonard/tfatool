@@ -153,7 +153,7 @@ def examine_large_files():
     print(f.time, f.date)  # time and date encoded as integers
 ```
 
-### Example 2: using file syncronization functions
+### Example 2: using file synchronization functions
 
 ```python
 from tfatool import sync
@@ -174,17 +174,46 @@ The `tfatool.sync.by_new_arrivals()` function watches your FlashAir device
 for new files. When new files are found, they're copied to the local directory
 specified by the `dest` argument (current working directory by default).
 
+
+### Example 4: watching for newly created files
+
 ```python
 from tfatool import sync
 
-# Sync forever
+# Monitor FlashAir for new files, sync them with a local directory
+# This will run forever
 sync.by_new_arrivals(dest="/home/tad/Pictures/new")
 
-# Sync only .raw files (forever) that are smaller than 3 MB
+# Sync only .raw image files that are smaller than 3 MB
+# This will run forever
 is_raw = lambda f: f.filename.lower().endswith(".raw", ".cr2")
 is_small = lambda f: f.size < 3e6
 sync.by_new_arrivals(is_raw, is_small, dest="/home/tad/Pictures/raw")
 ```
 
+### Example 5: sending config changes via a POST to *config.cgi*
+
+```python
+from tratool.config import config, Param, post
+
+params = {
+    Param.app_info: "special application info",
+    Param.wifi_timeout: 3600,  # one-hour WiFi timeout
+    Param.wifi_ssid: "SUPER FUN PHOTO ZONE",
+    Param.timezone: -11,  # somewhere in the USA, for example
+}
+
+# This will raise an assertion error if any parameters are invalid
+# or out of range (for example if the WiFi timeout is < 60 seconds)
+prepped_params = config(params)
+
+# Prompt reconfiguration of the device via an HTTP POST to config.cgi
+response = post(prepped_params)
+if response.status_code == 200:
+    print("FlashAir reconfiguration successful")
+else:
+    print("Error: {}".format(response.status_code))
+```
+
 # Installation
-Requires `requests` and `python3.4+`. Install with `pip3 install tfatool`.
+Requires `requests`, `tqdm`, and `python3.4+`. Install with `pip3 install tfatool`.
