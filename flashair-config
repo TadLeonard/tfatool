@@ -15,9 +15,11 @@ parser = ArgumentParser()
 parser.add_argument("-m", "--mastercode", default="BEEFBEEFBEEF",
                     help="12-digit hex mastercode to enable configuration "
                          "of the FlashAir device")
+parser.add_argument("-v", "--verbose", action="store_true")
 
 wifi = parser.add_argument_group("WiFi settings")
-wifi.add_argument("-t", "--wifi-timeout", help="set WiFi timeout of device")
+wifi.add_argument("-t", "--wifi-timeout", help="set WiFi timeout of device",
+                  type=float)
 wifi.add_argument("-w", "--wifi-mode", help="set WiFi mode of device",
                   choices=[mode.name for mode in config.WifiMode])
 wifi.add_argument("-W", "--wifi-mode-on-boot", action="store_true",
@@ -41,12 +43,17 @@ other.add_argument("-d", "--drive-mode", help="set WebDAV drive mode",
 
 def run():
     args = parser.parse_args()
+    if args.verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
+
     params = ((param, getattr(args, param.name))
               for param in config.Param
-              if getattr(args, param.name) is not None)
+              if getattr(args, param.name) not in (False, None))
     params = dict(params)
     cgi_params = config.config(params)
-    config.post(cgi_params)
+    logger.info("CGI params: {}".format(cgi_params))
+    response = config.post(cgi_params)
+    logger.info("Response: {}".format(response.status_code))
 
 
 if __name__ == "__main__":
