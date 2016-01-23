@@ -26,7 +26,7 @@ for more information about the API `tfatool` takes advantage of.
 ### Help menu
 ```
 $ flashair-util -h
-usage: flashair-util [-h] [-l] [-c] [-s] [-S {timestamp,name,all}]
+usage: flashair-util [-h] [-l] [-c] [-s] [-S {time,name,all}]
                      [-r REMOTE_DIR] [-d LOCAL_DIR] [-j] [-k MATCH_REGEX]
                      [-n N_FILES]
 
@@ -38,7 +38,7 @@ Actions:
   -c, --count-files
   -s, --sync-forever    watch for new files in REMOTE_DIR, copy them to
                         LOCAL_DIR (runs until CTRL-C)
-  -S {timestamp,name,all}, --sync-once {timestamp,name,all}
+  -S {time,name,all}, --sync-once {time,name,all}
                         move files (all or by most recent name/timestamp) from
                         REMOTE_DIR to LOCAL_DIR, then quit
 
@@ -99,8 +99,8 @@ flashair-util -j -k "IMG_08.+" -S all -d stuff/
 
 Other simple `--sync-once` examples include:
 
-* Just grab the most recent JPEG: `flashair-util -S timestamp -n 1`
-* Sync most recent 5 files by timestamp: `flashair-util -S timestamp --n-files 5`
+* Just grab the most recent JPEG: `flashair-util -S time -n 1`
+* Sync most recent 5 files by timestamp: `flashair-util -S time --n-files 5`
 * Of all files that end in `08.JPG`, sync the 10 
   greatest filenames: `flashair-util -S name --n-files 10 -k '.+08\.JPG'`
 
@@ -216,8 +216,8 @@ from tfatool import sync
 
 # Sync files as a one-off action
 # here we sync the most recent files sorted by (file.date, file.time)
-sync.by_timestamp(count=10)  # places most recent files in CWD by default
-sync.by_timestamp(count=15, dest="/home/tad/Pictures")
+sync.by_time(count=10)  # places most recent files in CWD by default
+sync.by_time(count=15, dest="/home/tad/Pictures")
 
 # Sync specific files selected from files list
 from tfatool import command
