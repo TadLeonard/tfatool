@@ -23,6 +23,12 @@ def count_files(remote_dir=DEFAULT_DIR, url=URL):
     return int(response.text)
 
 
+def memory_changed(url=URL):
+    """Returns True if memory has been written to, False otherwise"""
+    response = _get(Operation.memory_changed, url)
+    return int(response.text) == 1
+
+
 #####################
 # API implementation
 
@@ -35,8 +41,8 @@ def _split_file_list(text):
     for line in lines:
         groups = line.split(",")
         if len(groups) == 6:
-            d, f, size, a, date, time = groups
-            yield FileInfo(d, f, int(size), a, int(date), int(time))
+            d, f, *remaining = groups
+            yield FileInfo(d, f, *map(int, remaining))
 
 
 ########################################
@@ -45,6 +51,7 @@ def _split_file_list(text):
 class Operation(IntEnum):
     list_files = 100
     count_files = 101
+    memory_changed = 102
 
 
 def _get(operation: Operation, url=URL, **params):
