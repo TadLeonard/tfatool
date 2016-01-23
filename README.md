@@ -18,8 +18,8 @@ Features include:
 * `tfatool.config`: abstraction of FlashAir's [config.cgi](https://flashair-developers.com/en/documents/api/configcgi/)
 * `tfatool.sync`: functions to facilitate copying/syncing files from FlashAir
 
-See [FlashAir API documentation](https://flashair-developers.com/en/documents/api/)
-for more information about the FlashAir API `tfatool` takes advantage of.
+Read the [FlashAir documentation](https://flashair-developers.com/en/documents/api/)
+for more information about the API `tfatool` takes advantage of.
 
 # Usage
 ## Using the `flashair-util` script

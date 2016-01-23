@@ -31,12 +31,12 @@ actions.add_argument("-S", "--sync-once", default=False,
 
 setup = parser.add_argument_group("Setup")
 setup.add_argument("-r", "--remote-dir", default=info.DEFAULT_DIR,
-                   help="FlashAir directory to work with (default: {}".format(
+                   help="FlashAir directory to work with (default: {})".format(
                         info.DEFAULT_DIR))
 setup.add_argument("-d", "--local-dir", default=".",
-                   help="local directory to work with (default: current working dir)")
+                   help="local directory to work with (default: working dir)")
 setup.add_argument("-j", "--only-jpg", action="store_true",
-                   help="only work with JPEG files")
+                   help="filter for only JPEG files")
 setup.add_argument("-k", "--match-regex", default=None,
                    help="filter for files that match the given pattern")
 setup.add_argument("-n","--n-files", type=int, default=1,
