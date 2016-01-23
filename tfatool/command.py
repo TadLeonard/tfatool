@@ -43,7 +43,7 @@ def _split_file_list(text):
         groups = line.split(",")
         if len(groups) == 6:
             directory, filename, *remaining = groups
-            remaining = list(map(int, remaining))
+            remaining = map(int, remaining)
             size, attr_val, date_val, time_val = remaining
             timeinfo = _decode_time(date_val, time_val)
             attribute = _decode_attribute(attr_val)
