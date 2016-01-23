@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 from pathlib import Path, PosixPath
 from urllib.parse import urljoin
@@ -65,7 +66,7 @@ def _sync_file(destination_dir, fileinfo):
         logger.info("Copying remote file {} to {}".format(
                     fileinfo.filename, str(local_path)))
         streaming_file = _get_file(fileinfo)
-        _write_file(str(local_path), fileinfo, streaming_file)
+        _write_file_safely(str(local_path), fileinfo, streaming_file)
 
 
 def _get_file(fileinfo):
@@ -74,6 +75,19 @@ def _get_file(fileinfo):
     logger.info("Requesting file: {}".format(url)) 
     request = requests.get(url, stream=True)
     return request
+
+
+def _write_file_safely(local_path, fileinfo, response):
+    """attempts to stream a remote file into a local file object,
+    removes the local file if it's interrupted by any error"""
+    try:
+        _write_file(local_path, fileinfo, response)
+    except BaseException as e:
+        logger.warning("{} interrupted writing {} -- "
+                       "cleaning up partial file".format(
+                       e.__class__.__name__, local_path))
+        os.remove(local_path)
+        raise e
 
 
 def _write_file(local_path, fileinfo, response):
