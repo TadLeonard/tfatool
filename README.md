@@ -173,7 +173,7 @@ only_camille_photos = [f for f in all_files if "camille" in f.filename.lower()]
 sync.by_files(only_camille_photos, dest="/home/tad/Pictures/camille")
 ```
 
-### Example 4: watching for newly created files
+### Example 3: watching for newly created files
 
 The `tfatool.sync.by_new_arrivals()` function watches your FlashAir device
 for new files. When new files are found, they're copied to the local directory
