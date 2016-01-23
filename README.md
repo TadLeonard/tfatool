@@ -1,11 +1,16 @@
 # tfatool
 
-Tools for managing files with the Toshiba FlashAir wireless SD card.
-See [FlashAir API documentation](https://flashair-developers.com/en/documents/api/) for more information. Features include:
+Tools for using the Toshiba FlashAir wireless SD card. `tfatool` is
+both a library to ease programming around this device and a set of scripts to ease
+the command line usage of it.
+See [FlashAir API documentation](https://flashair-developers.com/en/documents/api/) for more information.
+Features include:
 
-* functions for easy usage of FlashAir's [command.cgi](https://flashair-developers.com/en/documents/api/commandcgi/)
-* functions to facilitate copying/syncing files from FlashAir
-* a command line tool for syncing FlashAir files with a local directory
+* `tfatool.command`: abstraction of FlashAir's [command.cgi](https://flashair-developers.com/en/documents/api/commandcgi/)
+* `tfatool.config`: abstraction of FlashAir's [config.cgi](https://flashair-developers.com/en/documents/api/configcgi/)
+* `tfatool.sync`: functions to facilitate copying/syncing files from FlashAir
+* `flashair-util`: a command line tool for managing files on FlashAir (syncing/copying files, listing files, etc.)
+* `flashair-config`: a command line tool for configuring FlashAir
 <img align="right" src="_docs/flashair.jpg">
 
 # Usage
@@ -59,8 +64,65 @@ IMG_0325.JPG
 (179 files)
 ```
 
+## Using the `flashair-config` script
+### Help menu
+```
+flashair-config -h
+usage: flashair-config [-h] [-m MASTERCODE] [-v] [-t WIFI_TIMEOUT]
+                       [-w {access_point,station,passthrough}] [-W]
+                       [-k WIFI_KEY] [-K PASSTHROUGH_KEY] [-s WIFI_SSID]
+                       [-S PASSTHROUGH_SSID] [--app-info APP_INFO]
+                       [--bootscreen-path BOOTSCREEN_PATH] [-M]
+                       [--timezone TIMEZONE] [-d {disable,enable,upload}]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -m MASTERCODE, --mastercode MASTERCODE
+                        12-digit hex mastercode to enable configuration of the
+                        FlashAir device
+  -v, --verbose
+
+WiFi settings:
+  -t WIFI_TIMEOUT, --wifi-timeout WIFI_TIMEOUT
+                        set WiFi timeout of device
+  -w {access_point,station,passthrough}, --wifi-mode {access_point,station,passthrough}
+                        set WiFi mode of device
+  -W, --wifi-mode-on-boot
+                        set the WiFi mode on next boot, not immediately
+  -k WIFI_KEY, --wifi-key WIFI_KEY
+                        set WiFi security key
+  -K PASSTHROUGH_KEY, --passthrough-key PASSTHROUGH_KEY
+                        set internet passthrough security key
+  -s WIFI_SSID, --wifi-ssid WIFI_SSID
+                        set WiFi SSID
+  -S PASSTHROUGH_SSID, --passthrough-ssid PASSTHROUGH_SSID
+                        set internet passthrough SSID
+
+Misc settings:
+  --app-info APP_INFO   set application-specific info
+  --bootscreen-path BOOTSCREEN_PATH
+                        set path to boot screen image
+  -M, --clear-mastercode
+  --timezone TIMEZONE   set timezone in hours offset (e.g. -8)
+  -d {disable,enable,upload}, --drive-mode {disable,enable,upload}
+                        set WebDAV drive mode
+```
+
+### Sample configurations of FlashAir
+
+Prepare for Internet passthrough mode. This sets the LAN SSID, password, and
+the FlashAir WiFi mode. If this is successful, the device will pass through
+Internet access to all connected clients.
+
+```flashair-config -K supersecretekey -S coffeeshopssid -w passthrough```
+
+Set the FlashAir WiFi network's SSID and password.
+
+```flashair-config -k supersecretekey -s myflashairnetwork```
+
+
 ## Using the `tfatool` library
-### Example 1: using FlashAir CGI commands
+### Example 1: using FlashAir's command.cgi
 ```python
 import tfatool.cgi
 
