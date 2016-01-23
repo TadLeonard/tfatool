@@ -50,6 +50,13 @@ def run():
               for param in config.Param
               if getattr(args, param.name) not in (False, None))
     params = dict(params)
+    if args.wifi_mode_on_boot:
+        if args.wifi_mode:
+            params[config.Param.wifi_mode] = (
+                config.WifiModeOnBoot[args.wifi_mode])
+        else:
+            parser.error("-W doesn't make sense without -w option")
+
     cgi_params = config.config(params)
     logger.info("CGI params: {}".format(cgi_params))
     response = config.post(cgi_params)
