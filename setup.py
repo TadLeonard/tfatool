@@ -9,7 +9,8 @@ download = "{}/archive/{}.tar.gz".format(url, version)
 
 
 def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+    with open(fname) as f:
+        return f.read()
 
 
 setup(name="tfatool",
@@ -21,11 +22,13 @@ setup(name="tfatool",
       description=("Tools for syncing files with the "
                    "Toshiba FlashAir wireless SD card"),
       long_description=read("README.md"),
-      package_data={".": "README.md"},
+      include_package_data=True,
+      package_data={"": ["README.md"]},
       author="Tad Leonard",
       author_email="tadfleonard@gmail.com",
       keywords="wireless sd card sync toshiba flashair", 
       url=url,
       download_url=download,
+      zip_safe=True,
 )
 
