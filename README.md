@@ -64,7 +64,7 @@ $ flashair-util -s -d path/to/files --only-jpg
 2016-01-22 21:28:44,035 | INFO | __main__ | Creating directory 'path/to/files'
 2016-01-22 21:29:12,337 | INFO | __main__ | Waiting for newly arrived files...
 2016-01-22 21:29:27,412 | INFO | tfatool.sync | Ready to sync new files (39 existing files ignored)
-
+```
 
 Some time later, a new photo appears in */DCIM/100__TSB*.
 
