@@ -32,7 +32,7 @@ def memory_changed(url=URL):
 #####################
 # API implementation
 
-_fields = ["directory", "filename", "size", "attribute", "date", "time"]
+_fields = ["directory", "filename", "size", "attribute", "timeinfo"]
 FileInfo = namedtuple("FileInfo", _fields)
 
 
@@ -41,8 +41,24 @@ def _split_file_list(text):
     for line in lines:
         groups = line.split(",")
         if len(groups) == 6:
-            d, f, *remaining = groups
-            yield FileInfo(d, f, *map(int, remaining))
+            directory, filename, *remaining = groups
+            remaining = list(map(int, remaining))
+            size, attribute, date_val, time_val = remaining
+            timeinfo = _decode_time(date_val, time_val)
+            yield FileInfo(directory, filename,
+                           size, attribute, timeinfo)
+
+
+TimeInfo = namedtuple("DateInfo", "year month day hour minute second")
+
+def _decode_time(date_val: int, time_val: int):
+    year = (date_val >> 9) + 1980  # 0-val is the year 1980
+    month = (date_val & (0b1111 << 5)) >> 5
+    day = date_val & 0b11111
+    hour = time_val >> 11
+    minute = (time_val & (0b111111 << 6)) >> 6
+    second = (time_val & 0b11111) * 2
+    return TimeInfo(year, month, day, hour, minute, second)
 
 
 ########################################
