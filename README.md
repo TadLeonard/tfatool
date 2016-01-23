@@ -6,6 +6,8 @@ a simple abstraction of the FlashAir API. As a set of scripts, `tfatool`
 gives the user a way of synchronizing files and configuring the device
 from the command line.
 
+<img align="right" src="_docs/flashair.jpg">
+
 Features include:
 
 * `flashair-util`: a command line tool for managing files on FlashAir (syncing/copying files, listing files, etc.)
@@ -16,7 +18,6 @@ Features include:
 
 See [FlashAir API documentation](https://flashair-developers.com/en/documents/api/)
 for more information about the FlashAir API `tfatool` takes advantage of.
-<img align="right" src="_docs/flashair.jpg">
 
 # Usage
 ## Using the `flashair-util` script
