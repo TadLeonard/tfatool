@@ -114,21 +114,48 @@ Other simple `--sync-once` examples include:
   greatest filenames: `flashair-util -S name --n-files 10 -k '.+08\.JPG'`
 
 
-### Example 3: list all JPEG files on FlashAir
+### Example 3: listing certain files on FlashAir
+
+List ALL files:
 ```
-$ flashair-util --list-files --only-jpg
+$ flashair-util -l
+Files in /DCIM/100__TSB
+=======================
+IMG_0894.JPG  2016-01-23  16:27:12  3.86MB
+IMG_0894.CR2  2016-01-23  16:27:14  17.73MB
+...
+IMG_0913.CR2  2016-01-23  18:19:54  15.53MB
+IMG_0914.JPG  2016-01-23  18:19:58  1.07MB
+IMG_0914.CR2  2016-01-23  18:20:00  15.53MB
+(249 files, 2.84 GB total)
+```
+
+List only JPEGs created on the 16th and 17th of January:
+```
+& flashair-util -l -t 2016-01-16 -T 2016-01-18 --only-jpg
+Files in /DCIM/100__TSB
+=======================
+IMG_0568.JPG  2016-01-16  18:09:50  4.96MB
+IMG_0580.JPG  2016-01-16  18:26:10  5.59MB
+IMG_0583.JPG  2016-01-16  18:27:02  5.16MB
+IMG_0584.JPG  2016-01-16  18:27:18  5.12MB
+IMG_0590.JPG  2016-01-16  20:01:52  5.51MB
+IMG_0597.JPG  2016-01-16  21:53:50  4.64MB
+IMG_0617.JPG  2016-01-17  00:15:24  5.55MB
+(7 files, 36.54 MB total)
+```
+
+List JPEGs that match a certain filename pattern:
+```
+$ flashair-util -l -k 'IMG_058.+' --only-jpg
 
 Files in /DCIM/100__TSB
 =======================
-FA000001.JPG
-IMG_0152.JPG
-IMG_0153.JPG
-...
-IMG_0325.JPG
-(179 files)
+IMG_0580.JPG  2016-01-16  18:26:10  5.59MB
+IMG_0583.JPG  2016-01-16  18:27:02  5.16MB
+IMG_0584.JPG  2016-01-16  18:27:18  5.12MB
+(3 files, 15.87 MB total)
 ```
-
-`flashair-util -l -j` and `flashair-util -l -k '.+\.JPG'` are equivalent.
 
 ## Using the `flashair-config` script
 ### Help menu
