@@ -38,6 +38,13 @@ def get_password(url=URL):
     return _get(Operation.get_password, url).text
 
 
+def get_mac(url=URL):
+    return _get(Operation.get_mac, url).text
+
+
+
+
+
 #####################
 # API implementation
 
@@ -87,6 +94,8 @@ class Operation(IntEnum):
     memory_changed = 102
     get_ssid = 104
     get_password = 105
+    get_mac = 106
+    
 
 
 def _get(operation: Operation, url=URL, **params):
