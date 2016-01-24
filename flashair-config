@@ -2,13 +2,14 @@
 
 import logging
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from tfatool import config, cgi, info
+from tfatool import config, command, cgi, info
 from requests import RequestException
 
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, style="{",
                     format="{asctime} | {levelname} | {name} | {message}")
+logging.getLogger("requests").setLevel(logging.WARNING)
 
 
 parser = ArgumentParser()
@@ -40,6 +41,13 @@ other.add_argument("--timezone", type=int,
 other.add_argument("-d", "--drive-mode", help="set WebDAV drive mode",
                    choices=[mode.name for mode in info.DriveMode])
 
+show = parser.add_argument_group("Show configuration parameters")
+show.add_argument("--show-wifi-ssid", action="store_true")
+show.add_argument("--show-wifi-key", action="store_true")
+show.add_argument("--show-mac", action="store_true")
+show.add_argument("--show-fw-version", action="store_true")
+show.add_argument("--show-wifi-mode", action="store_true")
+
 
 def run():
     args = parser.parse_args()
@@ -60,11 +68,25 @@ def run():
         params[info.Param.wifi_mode] = (
                 info.WifiMode[args.wifi_mode])
 
+    # set config params with a POST
     cgi_params = config.config(params)
-    logger.info("CGI params: {}".format(cgi_params))
-    response = config.post(cgi_params)
-    logger.info("Response: {}".format(response.status_code))
+    if len(list(cgi_params.keys())) > 1:
+        logger.info("CGI params: {}".format(cgi_params))
+        response = config.post(cgi_params)
+        logger.info("Response: {}".format(response.status_code))
 
+    # show config params with a GET
+    if args.show_wifi_ssid:
+        print("SSID: {}".format(command.get_ssid()))
+    if args.show_wifi_key:
+        print("WiFi key: {}".format(command.get_password()))
+    if args.show_mac:
+        print("MAC address: {}".format(command.get_mac()))
+    if args.show_fw_version:
+        print("Firmware version: {}".format(command.get_fw_version()))
+    if args.show_wifi_mode:
+        mode = command.get_wifi_mode()
+        print("WiFi mode: {} ({:d})".format(mode.name, mode.value))
 
 if __name__ == "__main__":
     with cgi.session:
