@@ -142,8 +142,10 @@ def print_file_list(filters, args):
     files = list(files)
     title = "Files in {}".format(args.remote_dir)
     nbytes = 0
+
     print(title)
     print("="* len(title))
+
     for f in files:
         nbytes += f.size
         print("{}  {}  {:0.2f}MB".format(
