@@ -2,7 +2,7 @@
 
 import logging
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from tfatool import config, cgi
+from tfatool import config, cgi, info
 from requests import RequestException
 
 
@@ -21,7 +21,7 @@ wifi = parser.add_argument_group("WiFi settings")
 wifi.add_argument("-t", "--wifi-timeout", help="set WiFi timeout of device",
                   type=float)
 wifi.add_argument("-w", "--wifi-mode", help="set WiFi mode of device",
-                  choices=[mode.name for mode in config.WifiMode])
+                  choices=[mode.name for mode in info.WifiMode])
 wifi.add_argument("-W", "--wifi-mode-on-boot", action="store_true",
                   help="set the WiFi mode on next boot, not immediately")
 wifi.add_argument("-k", "--wifi-key", help="set WiFi security key")
@@ -38,7 +38,7 @@ other.add_argument("-M", "--clear-mastercode", action="store_true")
 other.add_argument("--timezone", type=int,
                    help="set timezone in hours offset (e.g. -8)")
 other.add_argument("-d", "--drive-mode", help="set WebDAV drive mode",
-                   choices=[mode.name for mode in config.DriveMode])
+                   choices=[mode.name for mode in info.DriveMode])
 
 
 def run():
@@ -52,13 +52,13 @@ def run():
     params = dict(params)
     if args.wifi_mode_on_boot:
         if args.wifi_mode:
-            params[config.Param.wifi_mode] = (
-                config.WifiModeOnBoot[args.wifi_mode])
+            params[info.Param.wifi_mode] = (
+                info.WifiModeOnBoot[args.wifi_mode])
         else:
             parser.error("-W doesn't make sense without -w option")
     elif args.wifi_mode:
-        params[config.Param.wifi_mode] = (
-                config.WifiMode[args.wifi_mode])
+        params[info.Param.wifi_mode] = (
+                info.WifiMode[args.wifi_mode])
 
     cgi_params = config.config(params)
     logger.info("CGI params: {}".format(cgi_params))

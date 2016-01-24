@@ -2,9 +2,9 @@ import logging
 import arrow
 
 from collections import namedtuple
-from enum import IntEnum
 from . import cgi
 from .info import URL, DEFAULT_DIR
+from .info import WifiMode, ModeValue, Operation
 
 
 logger = logging.getLogger(__name__)
@@ -42,8 +42,20 @@ def get_mac(url=URL):
     return _get(Operation.get_mac, url).text
 
 
+def get_browser_lang(url=URL):
+    return _get(Operation.get_browser_lang, url).text
 
 
+def get_fw_version(url=URL):
+    return _get(Operation.get_fw_version, url).text
+
+
+def get_ctrl_image(url=URL):
+    return _get(Operation.get_ctrl_image, url).text
+
+
+def get_wifi_mode(url=URL) -> WifiMode:
+    return _get(Operation.get_wifi_mode, url).text
 
 #####################
 # API implementation
@@ -87,16 +99,6 @@ def _decode_attribute(attr_val: int):
 
 ########################################
 # command.cgi request prepping, sending
-
-class Operation(IntEnum):
-    list_files = 100
-    count_files = 101
-    memory_changed = 102
-    get_ssid = 104
-    get_password = 105
-    get_mac = 106
-    
-
 
 def _get(operation: Operation, url=URL, **params):
     """HTTP GET of the FlashAir command.cgi entrypoint"""

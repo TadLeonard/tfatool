@@ -70,7 +70,7 @@ def run():
         try:
             earliest_date = arrow.get(args.earliest_date)
             filters.append(lambda f: f.datetime > earliest_date)
-        except Arrow.parser.ParserError as e:
+        except arrow.parser.ParserError as e:
             parser.error("Invalid earliest date: {}".format(str(e)))
     if args.latest_date:
         try:
@@ -104,7 +104,10 @@ def run():
         elif args.sync_once == "all":
             logger.info("Retreiving ALL matched files")
             files = command.list_files(*filters, remote_dir=args.remote_dir)
-            sync.by_files(files, dest=args.local_dir)
+            try:
+                sync.by_files(files, dest=args.local_dir)
+            except KeyboardInterrupt:
+                pass
         if args.sync_forever:
             try:
                 sync_loop(filters, args)
