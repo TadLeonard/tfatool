@@ -19,17 +19,18 @@ def by_new_arrivals(*filters, remote_dir=DEFAULT_DIR, dest="."):
     `filters`, sync them with `dest` local directory."""
     logger.info("Building existing file list")
     old_files = set(command.list_files(*filters, remote_dir=remote_dir))
+    command.memory_changed()  # clear change status to start
     _notify_sync_ready(old_files)
     while True:
-        new_files = set(command.list_files(*filters, remote_dir=remote_dir))
-        if old_files < new_files:
+        if command.memory_changed():
+            new_files = set(command.list_files(*filters, remote_dir=remote_dir))
             new_arrivals = new_files - old_files
             logger.info("Files to sync:\n{}".format(
                 "\n".join("  " + f.filename for f in new_arrivals)))
             by_files(new_arrivals, dest=dest)
             _notify_sync_ready(old_files)
-        old_files = new_files
-        time.sleep(1)
+            old_files = new_files
+        time.sleep(0.3)
 
 
 def _notify_sync_ready(old_files):
