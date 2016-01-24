@@ -30,6 +30,14 @@ def memory_changed(url=URL):
     return int(response.text) == 1
 
 
+def get_ssid(url=URL):
+    return _get(Operation.get_ssid, url).text
+
+
+def get_password(url=URL):
+    return _get(Operation.get_password, url).text
+
+
 #####################
 # API implementation
 
@@ -77,6 +85,8 @@ class Operation(IntEnum):
     list_files = 100
     count_files = 101
     memory_changed = 102
+    get_ssid = 104
+    get_password = 105
 
 
 def _get(operation: Operation, url=URL, **params):
