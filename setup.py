@@ -1,5 +1,4 @@
 import os
-import pypandoc
 import tfatool._version
 from setuptools import setup
 
@@ -7,7 +6,12 @@ from setuptools import setup
 version = tfatool._version.__version__
 url = "https://github.com/TadLeonard/tfatool"
 download = "{}/archive/{}.tar.gz".format(url, version)
-long_description = pypandoc.convert('README.md', 'rst')
+try:
+    import pypandoc
+    long_description = pypandoc.convert('README.md', 'rst')
+except ImportError:
+    long_description = ("Tools for syncing files with the Toshiba FlashAir "
+                        "wireless SD card")
 classifiers = [
   'Development Status :: 5 - Production/Stable',
   'Environment :: Console',
