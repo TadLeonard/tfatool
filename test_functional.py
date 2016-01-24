@@ -12,6 +12,7 @@ fns = [
     command.get_fw_version,
     command.get_ctrl_image,
     command.get_wifi_mode,
+    
 ]
 
 for fn in fns:

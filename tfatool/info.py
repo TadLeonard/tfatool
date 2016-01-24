@@ -20,7 +20,7 @@ class Operation(IntEnum):
     get_wifi_mode = 110
 
 
-class Param(str, Enum):
+class Config(str, Enum):
     wifi_timeout = "APPAUTOTIME"  # set wifi timeout
     app_info = "APPINFO"  # set "application unique info"
     wifi_mode = "APPMODE"  # set WLAN mode (see Mode and ModeOnBoot)

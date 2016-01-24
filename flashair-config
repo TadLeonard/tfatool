@@ -55,17 +55,17 @@ def run():
         logging.getLogger().setLevel(logging.DEBUG)
 
     params = ((param, getattr(args, param.name))
-              for param in config.Param
+              for param in config.Config
               if getattr(args, param.name) not in (False, None))
     params = dict(params)
     if args.wifi_mode_on_boot:
         if args.wifi_mode:
-            params[info.Param.wifi_mode] = (
+            params[info.Config.wifi_mode] = (
                 info.WifiModeOnBoot[args.wifi_mode])
         else:
             parser.error("-W doesn't make sense without -w option")
     elif args.wifi_mode:
-        params[info.Param.wifi_mode] = (
+        params[info.Config.wifi_mode] = (
                 info.WifiMode[args.wifi_mode])
 
     # set config params with a POST

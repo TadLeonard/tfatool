@@ -1,16 +1,17 @@
 from urllib import parse
-from tfatool.config import config, Param, WifiMode, DriveMode
+from tfatool.info import Config, WifiMode, DriveMode
+from tfatool.config import config
 from tfatool import command
 
 
 def test_config_construction():
-    params = {Param.wifi_ssid: "chiquita"}
+    params = {Config.wifi_ssid: "chiquita"}
     cfg = config(params)
     assert cfg == {"MASTERCODE": "BEEFBEEFBEEF", "APPSSID": "chiquita"}
 
 
 def test_invalid_timeout_value():
-    params = {Param.wifi_timeout: 15}  # 15 secs is too short
+    params = {Config.wifi_timeout: 15}  # 15 secs is too short
     try:
         assert config(params)["APPAUTOTIME"] == 15000
     except AssertionError:
@@ -20,23 +21,23 @@ def test_invalid_timeout_value():
 
 
 def test_valid_timeout_value():
-    params = {Param.wifi_timeout: 120.5201}
+    params = {Config.wifi_timeout: 120.5201}
     assert config(params)["APPAUTOTIME"] == 120520
     
 
 def test_full_config():
-    params = {Param.wifi_timeout: 60,
-              Param.app_info: "some info is fun",
-              Param.wifi_mode: WifiMode.station,
-              Param.wifi_key: "supersecret",
-              Param.wifi_ssid: "chiquita",
-              Param.passthrough_key: "verysecret",
-              Param.passthrough_ssid: "officewifi",
-              Param.bootscreen_path: "/DCIM/img.jpg",
-              Param.mastercode: "BEEFBEEFBEEF",
-              Param.clear_mastercode: ...,
-              Param.timezone: -5,
-              Param.drive_mode: DriveMode.disable,
+    params = {Config.wifi_timeout: 60,
+              Config.app_info: "some info is fun",
+              Config.wifi_mode: WifiMode.station,
+              Config.wifi_key: "supersecret",
+              Config.wifi_ssid: "chiquita",
+              Config.passthrough_key: "verysecret",
+              Config.passthrough_ssid: "officewifi",
+              Config.bootscreen_path: "/DCIM/img.jpg",
+              Config.mastercode: "BEEFBEEFBEEF",
+              Config.clear_mastercode: ...,
+              Config.timezone: -5,
+              Config.drive_mode: DriveMode.disable,
              }
     assert config(params) == {
                 'APPSSID': 'chiquita', 'CIPATH': '/DCIM/img.jpg',

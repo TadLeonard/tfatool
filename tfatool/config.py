@@ -2,14 +2,14 @@ import logging
 from functools import partial
 from . import cgi
 from .info import URL, DEFAULT_MASTERCODE
-from .info import WifiMode, WifiModeOnBoot, ModeValue, DriveMode, Param
+from .info import WifiMode, WifiModeOnBoot, ModeValue, DriveMode, Config
 
 
 def config(param_map, mastercode=DEFAULT_MASTERCODE):
-    """Takes a dictionary of {Param.key: value} and
+    """Takes a dictionary of {Config.key: value} and
     returns a dictionary of processed keys and values to be used in the
     construction of a POST request to FlashAir's config.cgi"""
-    pmap = {Param.mastercode: mastercode}
+    pmap = {Config.mastercode: mastercode}
     pmap.update(param_map)
     processed_params = dict(_process_params(pmap))
     return processed_params
@@ -17,7 +17,7 @@ def config(param_map, mastercode=DEFAULT_MASTERCODE):
 
 def _process_params(params):
     for param, value in params.items():
-        assert param in Param, "Invalid param: {}".format(param)
+        assert param in Config, "Invalid param: {}".format(param)
         yield param.value, value_validators[param](value)
 
 
@@ -44,7 +44,7 @@ def _validator(parameter):
     return wrapper
 
 
-@_validator(Param.wifi_timeout)
+@_validator(Config.wifi_timeout)
 def _validate_timeout(seconds: float):
     """Creates an int from 60000 to 4294967294 that represents a
     valid millisecond wireless LAN timeout"""
@@ -53,43 +53,43 @@ def _validate_timeout(seconds: float):
     return val
 
 
-@_validator(Param.app_info)
+@_validator(Config.app_info)
 def _validate_app_info(info: str):
     assert 1 <= len(info) <= 16
     return info
 
 
-@_validator(Param.wifi_mode)
+@_validator(Config.wifi_mode)
 def _validate_wifi_mode(mode: ModeValue):
     assert mode in WifiMode or mode in WifiModeOnBoot
     return int(mode) 
 
 
-@_validator(Param.wifi_key)
+@_validator(Config.wifi_key)
 def _validate_wifi_key(network_key: str):
     assert 0 <= len(network_key) <= 63
     return network_key
 
 
-@_validator(Param.wifi_ssid)
+@_validator(Config.wifi_ssid)
 def _validate_wifi_ssid(network_ssid: str):
     assert 1 <= len(network_ssid) <= 32
     return network_ssid
 
 
-@_validator(Param.passthrough_key)
+@_validator(Config.passthrough_key)
 def _validate_passthrough_key(network_key: str):
     assert 0 <= len(network_key) <= 63
     return network_key
 
 
-@_validator(Param.passthrough_ssid)
+@_validator(Config.passthrough_ssid)
 def _validate_passthroughssid(network_ssid: str):
     assert 1 <= len(network_ssid) <= 32
     return network_ssid
 
 
-@_validator(Param.mastercode)
+@_validator(Config.mastercode)
 def _validate_mastercode(code: str):
     assert len(code) == 12
     code = code.upper()
@@ -98,17 +98,17 @@ def _validate_mastercode(code: str):
     return code
 
 
-@_validator(Param.bootscreen_path)
+@_validator(Config.bootscreen_path)
 def _validate_bootscreen_path(path: str):
     return path
 
 
-@_validator(Param.clear_mastercode)
+@_validator(Config.clear_mastercode)
 def _validate_clear_mastercode(_):
     return 1
 
 
-@_validator(Param.timezone)
+@_validator(Config.timezone)
 def _validate_timezone(hours_offset: int):
     """Creates an int from -48 to 36 that represents the timezone
     offset in 15-minute increments as per the FlashAir docs"""
@@ -117,7 +117,7 @@ def _validate_timezone(hours_offset: int):
     return param_value
 
 
-@_validator(Param.drive_mode)
+@_validator(Config.drive_mode)
 def _validate_drive_mode(mode: DriveMode):
     assert mode in DriveMode
     return int(mode)
