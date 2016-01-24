@@ -4,7 +4,7 @@ import arrow
 from collections import namedtuple
 from . import cgi
 from .info import URL, DEFAULT_DIR
-from .info import WifiMode, ModeValue, Operation
+from .info import WifiMode, WifiModeOnBoot, ModeValue, Operation
 
 
 logger = logging.getLogger(__name__)
@@ -55,7 +55,13 @@ def get_ctrl_image(url=URL):
 
 
 def get_wifi_mode(url=URL) -> WifiMode:
-    return _get(Operation.get_wifi_mode, url).text
+    mode_value = int(_get(Operation.get_wifi_mode, url).text)
+    all_modes = list(WifiMode) + list(WifiModeOnBoot)
+    for mode in all_modes:
+        if mode.value == mode_value:
+            return mode
+    raise ValueError("Uknown mode: {:d}".format(mode_value))
+        
 
 #####################
 # API implementation
