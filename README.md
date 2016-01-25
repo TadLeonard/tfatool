@@ -8,14 +8,17 @@ from the command line.
 
 Some motivational command line examples:
 
-* Monitor FlashAir for new files,
-  synchronize them with a local directory when they appear:
-  `flashair-util -s -d /home/tad/Photos`
-* Synchronize the 10 most recent files on FlashAir
-  with a local directory: `flashair-util -S time -d images/new/
-* Synchronize the five most recent RAW files by a certain name:
-  `flashair-util -S time -k 'IMG-08.+\.raw'`
-* Change FlashAIr SSID: `flashair-config --wifi-ssid myflashairnetwork`
+| Action                                                      | Command                                         |
+| ----------------------------------------------------------- | ------------------------------------------------|
+| Monitor FlashAir for new files,                             | `flashair-util -s -d /home/tad/Photos`          |
+  synchronize them with a local directory
+  when they appear
+| Synchronize the 10 most recent files on FlashAir            | `flashair-util -S time -d images/new/`          |
+  with a local directory: `
+| Synchronize the five most recent RAW files                  | `flashair-util -S time -k 'IMG-08.+\.raw'`      
+  by a certain name:
+  
+| Change FlashAIr SSID: `flashair-config --wifi-ssid myflashairnetwork`
 
 <img align="right" src="_docs/flashair.jpg">
 
