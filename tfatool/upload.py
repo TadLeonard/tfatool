@@ -68,6 +68,6 @@ def _encode_time(ctime: float):
     dt = arrow.get(ctime)
     date_val = ((dt.year - 1980) << 9) | (dt.month << 5) | dt.day
     secs = dt.second + dt.microsecond / 10**6
-    time_val = (dt.hour << 11) | (dt.minute << 6) | math.floor(secs / 2)
+    time_val = (dt.hour << 11) | (dt.minute << 5) | math.floor(secs / 2)
     return (date_val << 16) | time_val
 
