@@ -77,6 +77,15 @@ def test_datetime_encode_decode():
     decoded = command._decode_time(encoded >> 16, encoded & 0xFFFF)
 
     # accurate down to the second
-    for attr in "year month day hour minute second".split():
+    for attr in "year month day hour minute".split():
         assert getattr(dtime, attr) == getattr(decoded, attr)
 
+    # seconds are encoded so that they're +- 1
+    assert abs(decoded.second - (dtime.second + dtime.microsecond / 10**6)) < 2
+
+
+def test_datetime_str_encode():
+    datetime_val = 0x00340153  # a 32-bit encoded date
+    as_string = upload._str_encode_time(datetime_val)
+    assert as_string == "0x00340153"
+ 
