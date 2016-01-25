@@ -1,4 +1,6 @@
-# tfatool: tools for the Toshiba FlashAir
+# tfatool: *T*oshiba *F*lash*A*ir Tool
+[![License](http://img.shields.io/:license-mit-blue.svg?style=flat-blue)](http://badges.mit-license.org)
+[![PyPI version](https://badge.fury.io/py/tfatool.svg)](https://badge.fury.io/py/tfatool)
 
 This package provides easy access to
 Toshiba's FlashAir wireless SD card. As a library, this project provides
@@ -6,20 +8,20 @@ a simple abstraction of the FlashAir API. As a set of scripts, `tfatool`
 gives the user a way of synchronizing files and configuring the device
 from the command line.
 
-Some motivational command line examples:
+### Command line usage at a glance
 
-* Monitor FlashAir for new files,
-  synchronize them with a local directory when they appear:
-  `flashair-util -s -d /home/tad/Photos`
-* Synchronize the 10 most recent files on FlashAir
-  with a local directory: `flashair-util -S time -d images/new/
-* Synchronize the five most recent RAW files by a certain name:
-  `flashair-util -S time -k 'IMG-08.+\.raw'`
-* Change FlashAIr SSID: `flashair-config --wifi-ssid myflashairnetwork`
+  Action                                                      | Command                                         
+  ----------------------------------------------------------- | ------------------------------------------------
+  Watch FlashAir for new JPEGs, sync to local dir forever     | `flashair-util -s -d /home/tad/Photos --only-jpeg`
+  Sync the 10 most recent files with a local dir, then quit   | `flashair-util -S time -d images/new/`  
+  Sync files created between Jan 23rd and Jan 26th            | `flashair-util -S all -t 2016-01-23 -T 2016-01-26`
+  Sync the five most recent RAW files of a certain name       | `flashair-util -S time -k 'IMG-08.+\.raw'`      
+  Change FlashAir network SSID                                | `flashair-config --wifi-ssid myflashairnetwork`
+  Show FlashAir network password & firmware version           | `flashair-config --show-wifi-key --show-fw-version`
 
 <img align="right" src="_docs/flashair.jpg">
 
-Features include:
+### Package contents at a glance
 
 * `flashair-util`: a command line tool for syncing, copying, listing files on FlashAir
 * `flashair-config`: a command line tool for configuring FlashAir
@@ -30,9 +32,10 @@ Features include:
 Read the [FlashAir documentation](https://flashair-developers.com/en/documents/api/)
 for more information about the API `tfatool` takes advantage of.
 
-# Usage
+# Usage guide
 ## Using the `flashair-util` script
 ### Help menu
+
 ```
 $ flashair-util -h
 usage: flashair-util [-h] [-l] [-c] [-s] [-S {time,name,all}] [-r REMOTE_DIR]
@@ -74,6 +77,7 @@ File filters:
 ```
 
 ### Example 1: sync newly created files on FlashAir card
+
 Watch for new files on the FlashAir SD card. When new files are found,
 write them to a specified local directory.
 
@@ -97,11 +101,13 @@ Some time later, a new photo appears in the default remote directory.
 
 ### Example 2: sync subset of files on FlashAir *just once*
 
-Sync JPEG files that start with *IMG_08* with the local `stuff/` directory.
-Notice that files which already exist in `stuff/` are not overwritten.
+Sync JPEG files that were created between December 15th, 2015 (at 3:00 pm)
+and January 12, 2016 with the local `stuff/` directory.
+Notice that *files which already exist and match the size in bytes of those on FlashAir*
+are not overwritten.
 
 ```
-flashair-util -j -k "IMG_08.+" -S all -d stuff/
+flashair-util -S all -d stuff/ -j -t '2015-12-15 15:00' -T 2016-01-12
 2016-01-22 22:29:02,228 | INFO | __main__ | Syncing files from /DCIM/100__TSB to stuff/
 2016-01-22 22:29:02,229 | INFO | __main__ | Retreiving ALL matched files
 2016-01-22 22:29:02,330 | INFO | tfatool.sync | File 'stuff/IMG_0800.JPG' already exists; not syncing from SD card
@@ -125,6 +131,7 @@ Other simple `--sync-once` examples include:
 ### Example 3: listing certain files on FlashAir
 
 List ALL files:
+
 ```
 $ flashair-util -l
 Files in /DCIM/100__TSB
@@ -138,6 +145,7 @@ IMG_0914.CR2  2016-01-23  18:20:00  15.53MB
 ```
 
 List only JPEGs created on the 16th and 17th of January:
+
 ```
 & flashair-util -l -t 2016-01-16 -T 2016-01-18 --only-jpg
 Files in /DCIM/100__TSB
@@ -153,6 +161,7 @@ IMG_0617.JPG  2016-01-17  00:15:24  5.55MB
 ```
 
 List JPEGs that match a certain filename pattern:
+
 ```
 $ flashair-util -l -k 'IMG_058.+' --only-jpg
 
