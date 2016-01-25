@@ -1,4 +1,4 @@
-# tfatool: tools for the Toshiba FlashAir
+# tfatool: *T*oshiba *F*lash*A*ir Tool
 
 This package provides easy access to
 Toshiba's FlashAir wireless SD card. As a library, this project provides
