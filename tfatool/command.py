@@ -89,7 +89,7 @@ def _decode_time(date_val: int, time_val: int):
     month = (date_val & (0b1111 << 5)) >> 5
     day = date_val & 0b11111
     hour = time_val >> 11
-    minute = (time_val & (0b111111 << 6)) >> 6
+    minute = (time_val >> 6) & 0b11111
     second = (time_val & 0b11111) * 2
     return arrow.get(year, month, day, hour, minute, second)
 
