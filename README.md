@@ -1,4 +1,5 @@
 # tfatool: *T*oshiba *F*lash*A*ir Tool
+[![PyPI version](https://badge.fury.io/py/tfatool.svg)](https://badge.fury.io/py/tfatool)
 
 This package provides easy access to
 Toshiba's FlashAir wireless SD card. As a library, this project provides
