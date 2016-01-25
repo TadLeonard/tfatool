@@ -1,4 +1,4 @@
-# tfatool
+# tfatool: tools for the Toshiba FlashAir
 
 This package provides easy access to
 Toshiba's FlashAir wireless SD card. As a library, this project provides
@@ -35,9 +35,9 @@ for more information about the API `tfatool` takes advantage of.
 ### Help menu
 ```
 $ flashair-util -h
-usage: flashair-util [-h] [-l] [-c] [-s] [-S {time,name,all}]
-                     [-r REMOTE_DIR] [-d LOCAL_DIR] [-j] [-k MATCH_REGEX]
-                     [-n N_FILES]
+usage: flashair-util [-h] [-l] [-c] [-s] [-S {time,name,all}] [-r REMOTE_DIR]
+                     [-d LOCAL_DIR] [-j] [-n N_FILES] [-k MATCH_REGEX]
+                     [-t EARLIEST_DATE] [-T LATEST_DATE]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -54,15 +54,23 @@ Actions:
 Setup:
   -r REMOTE_DIR, --remote-dir REMOTE_DIR
                         FlashAir directory to work with (default:
-                        /DCIM/100__TSB
+                        /DCIM/100__TSB)
   -d LOCAL_DIR, --local-dir LOCAL_DIR
-                        local directory to work with (default: current working
-                        dir)
-  -j, --only-jpg        only work with JPEG files
-  -k MATCH_REGEX, --match-regex MATCH_REGEX
-                        filter for files that match the given pattern
+                        local directory to work with (default: working dir)
+
+File filters:
+  -j, --only-jpg        filter for only JPEG files
   -n N_FILES, --n-files N_FILES
                         Number of files to move in --sync-once mode
+  -k MATCH_REGEX, --match-regex MATCH_REGEX
+                        filter for files that match the given pattern
+  -t EARLIEST_DATE, --earliest-date EARLIEST_DATE
+                        work on only files AFTER datetime similar to YYYY-MM-
+                        DD HH:SS
+  -T LATEST_DATE, --latest-date LATEST_DATE
+                        work on only files BEFORE datetime similar to YYYY-MM-
+                        DD HH:SS
+
 ```
 
 ### Example 1: sync newly created files on FlashAir card
@@ -159,6 +167,7 @@ IMG_0584.JPG  2016-01-16  18:27:18  5.12MB
 
 ## Using the `flashair-config` script
 ### Help menu
+
 ```
 flashair-config -h
 usage: flashair-config [-h] [-m MASTERCODE] [-v] [-t WIFI_TIMEOUT]
@@ -167,6 +176,8 @@ usage: flashair-config [-h] [-m MASTERCODE] [-v] [-t WIFI_TIMEOUT]
                        [-S PASSTHROUGH_SSID] [--app-info APP_INFO]
                        [--bootscreen-path BOOTSCREEN_PATH] [-M]
                        [--timezone TIMEZONE] [-d {disable,enable,upload}]
+                       [--show-wifi-ssid] [--show-wifi-key] [--show-mac]
+                       [--show-fw-version] [--show-wifi-mode]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -199,6 +210,13 @@ Misc settings:
   --timezone TIMEZONE   set timezone in hours offset (e.g. -8)
   -d {disable,enable,upload}, --drive-mode {disable,enable,upload}
                         set WebDAV drive mode
+
+Show configuration parameters:
+  --show-wifi-ssid
+  --show-wifi-key
+  --show-mac
+  --show-fw-version
+  --show-wifi-mode
 ```
 
 ### Sample configurations of FlashAir
@@ -285,13 +303,14 @@ sync.by_new_arrivals(is_raw, is_small, dest="/home/tad/Pictures/raw")
 ### Example 4: sending config changes via a POST to *config.cgi*
 
 ```python
-from tratool.config import config, Param, post
+from tfatool.config import post, config
+from tfatool.info import Config
 
 params = {
-    Param.app_info: "special application info",
-    Param.wifi_timeout: 3600,  # one-hour WiFi timeout
-    Param.wifi_ssid: "SUPER FUN PHOTO ZONE",
-    Param.timezone: -11,  # somewhere in the USA, for example
+    Config.app_info: "special application info",
+    Config.wifi_timeout: 3600,  # one-hour WiFi timeout
+    Config.wifi_ssid: "SUPER FUN PHOTO ZONE",
+    Config.timezone: -11,  # somewhere in the USA, for example
 }
 
 # This will raise an assertion error if any parameters are invalid
