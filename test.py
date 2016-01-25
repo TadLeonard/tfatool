@@ -1,7 +1,10 @@
+import os
+import arrow
+
 from urllib import parse
 from tfatool.info import Config, WifiMode, DriveMode
 from tfatool.config import config
-from tfatool import command
+from tfatool import command, upload
 
 
 def test_config_construction():
@@ -61,4 +64,19 @@ def test_command_cgi_url():
     print(req.url)
     url, _ = parse.splitquery(req.url)
     assert url == "http://192.168.0.1/command.cgi"
+
+
+def test_datetime_encode_decode():
+    ctime = os.stat("README.md").st_ctime
+    dtime = arrow.get(ctime)
+
+    # encode to FAT32 time
+    encoded = upload._encode_time(ctime)
+
+    # decode to arrow datetime
+    decoded = command._decode_time(encoded >> 16, encoded & 0xFFFF)
+
+    # accurate down to the second
+    for attr in "year month day hour minute second".split():
+        assert getattr(dtime, attr) == getattr(decoded, attr)
 
