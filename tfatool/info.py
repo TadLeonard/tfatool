@@ -62,4 +62,19 @@ class DriveMode(ModeValue):
 
 class Upload(str, Enum):
     """Parameter names for upload.cgi"""
-     
+    delete = "DEL"
+    directory = "UPDIR"
+    creation_time = "FTIME"
+    write_protect = "WRITEPROTECT"
+
+
+class WriteProtectMode(str, Enum):
+    on = "ON"
+    off = "OFF"
+
+
+class ResponseCode(str, Enum):
+    success = "SUCCESS"
+    error = "ERROR"
+
+
