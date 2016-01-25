@@ -21,6 +21,7 @@ class Operation(IntEnum):
 
 
 class Config(str, Enum):
+    """Config params for config.cgi"""
     wifi_timeout = "APPAUTOTIME"  # set wifi timeout
     app_info = "APPINFO"  # set "application unique info"
     wifi_mode = "APPMODE"  # set WLAN mode (see Mode and ModeOnBoot)
@@ -59,3 +60,6 @@ class DriveMode(ModeValue):
     upload = 2  # enabled, read AND write allowed
 
 
+class Upload(str, Enum):
+    """Parameter names for upload.cgi"""
+     
