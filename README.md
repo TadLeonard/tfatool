@@ -11,7 +11,7 @@ Some motivational command line examples:
   Action                                                      | Command                                         
   ----------------------------------------------------------- | ------------------------------------------------
   Watch FlashAir for new JPEGs, sync to local dir forever     | `flashair-util -s -d /home/tad/Photos --only-jpeg`
-  Sync the 10 most recent files with a local dir (once        | `flashair-util -S time -d images/new/`  
+  Sync the 10 most recent files with a local dir, then quit   | `flashair-util -S time -d images/new/`  
   Sync files created between Jan 23rd and Jan 26th            | `flashair-util -S all -t 2016-01-23 -T 2016-01-26`
   Sync the five most recent RAW files of a certain name       | `flashair-util -S time -k 'IMG-08.+\.raw'`      
   Change FlashAir network SSID                                | `flashair-config --wifi-ssid myflashairnetwork`
@@ -97,11 +97,13 @@ Some time later, a new photo appears in the default remote directory.
 
 ### Example 2: sync subset of files on FlashAir *just once*
 
-Sync JPEG files that start with *IMG_08* with the local `stuff/` directory.
-Notice that files which already exist in `stuff/` are not overwritten.
+Sync JPEG files that were created between December 15th, 2015 (at 3:00 pm)
+and January 12, 2016 with the local `stuff/` directory.
+Notice that *files which already exist and match the size in bytes of those on FlashAir*
+are not overwritten.
 
 ```
-flashair-util -j -k "IMG_08.+" -S all -d stuff/
+flashair-util -S all -d stuff/ -j -t '2015-12-15 15:00' -T 2016-01-12
 2016-01-22 22:29:02,228 | INFO | __main__ | Syncing files from /DCIM/100__TSB to stuff/
 2016-01-22 22:29:02,229 | INFO | __main__ | Retreiving ALL matched files
 2016-01-22 22:29:02,330 | INFO | tfatool.sync | File 'stuff/IMG_0800.JPG' already exists; not syncing from SD card
