@@ -26,27 +26,23 @@ def upload_file(local_path: str, url=URL, dest=DEFAULT_DIR):
 
 
 def set_write_protect(mode: WriteProtectMode, url=URL):
-    params = {Upload.directory: mode.value}
-    return post(url=url, **params)
+    return post(url=url, **{Upload.write_protect: mode})
 
 
 def set_remote_dir(remote_dir: str, url=URL):
-    params = {Upload.directory: remote_dir}
-    return post(url=url, **params)
+    return post(url=url, **{Upload.directory: remote_dir})
 
 
 def set_creation_time(local_path: str, url=URL):
     ctime = os.stat(local_path).st_ctime
     fat_time = _encode_ctime(ctime)
     encoded_time = _str_encode_time(fat_time)
-    params = {Upload.creation_time: encoded_time}
-    return post(url=url, **params)
+    return post(url=url, **{Upload.creation_time: encoded_time})
 
 
 def post_file(local_path: str, url=URL):
     files = {local_path: open(local_path, "rb")}
-    request_kwargs = dict(files=files)
-    return post(url=url, req_kwargs=request_kwargs)
+    return post(url=url, req_kwargs=dict(files=files))
 
 
 def delete_file(remote_file: str, url=URL):
