@@ -8,17 +8,14 @@ from the command line.
 
 Some motivational command line examples:
 
-| Action                                                      | Command                                         |
-| ----------------------------------------------------------- | ------------------------------------------------|
-| Monitor FlashAir for new files,                             | `flashair-util -s -d /home/tad/Photos`          |
-  synchronize them with a local directory
-  when they appear
-| Synchronize the 10 most recent files on FlashAir            | `flashair-util -S time -d images/new/`          |
-  with a local directory: `
-| Synchronize the five most recent RAW files                  | `flashair-util -S time -k 'IMG-08.+\.raw'`      
-  by a certain name:
-  
-| Change FlashAIr SSID: `flashair-config --wifi-ssid myflashairnetwork`
+  Action                                                      | Command                                         
+  ----------------------------------------------------------- | ------------------------------------------------
+  Watch FlashAir for new JPEGs, sync to local dir forever     | `flashair-util -s -d /home/tad/Photos --only-jpeg`
+  Sync the 10 most recent files with a local dir (once        | `flashair-util -S time -d images/new/`  
+  Sync files created between Jan 23rd and Jan 26th            | `flashair-util -S all -t 2016-01-23 -T 2016-01-26`
+  Sync the five most recent RAW files of a certain name       | `flashair-util -S time -k 'IMG-08.+\.raw'`      
+  Change FlashAir network SSID                                | `flashair-config --wifi-ssid myflashairnetwork`
+  Show FlashAir network password & firmware version           | `flashair-config --show-wifi-key --show-fw-version`
 
 <img align="right" src="_docs/flashair.jpg">
 
@@ -128,6 +125,7 @@ Other simple `--sync-once` examples include:
 ### Example 3: listing certain files on FlashAir
 
 List ALL files:
+
 ```
 $ flashair-util -l
 Files in /DCIM/100__TSB
@@ -141,6 +139,7 @@ IMG_0914.CR2  2016-01-23  18:20:00  15.53MB
 ```
 
 List only JPEGs created on the 16th and 17th of January:
+
 ```
 & flashair-util -l -t 2016-01-16 -T 2016-01-18 --only-jpg
 Files in /DCIM/100__TSB
@@ -156,6 +155,7 @@ IMG_0617.JPG  2016-01-17  00:15:24  5.55MB
 ```
 
 List JPEGs that match a certain filename pattern:
+
 ```
 $ flashair-util -l -k 'IMG_058.+' --only-jpg
 
