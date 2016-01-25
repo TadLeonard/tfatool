@@ -1,4 +1,5 @@
 # tfatool: *T*oshiba *F*lash*A*ir Tool
+[![License](http://img.shields.io/:license-mit-blue.svg?style=flat-blue)](http://badges.mit-license.org)
 [![PyPI version](https://badge.fury.io/py/tfatool.svg)](https://badge.fury.io/py/tfatool)
 
 This package provides easy access to
