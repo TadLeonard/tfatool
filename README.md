@@ -6,7 +6,7 @@ a simple abstraction of the FlashAir API. As a set of scripts, `tfatool`
 gives the user a way of synchronizing files and configuring the device
 from the command line.
 
-Some motivational command line examples:
+### Command line usage at a glance
 
   Action                                                      | Command                                         
   ----------------------------------------------------------- | ------------------------------------------------
@@ -19,7 +19,7 @@ Some motivational command line examples:
 
 <img align="right" src="_docs/flashair.jpg">
 
-Features include:
+### Package contents at a glance
 
 * `flashair-util`: a command line tool for syncing, copying, listing files on FlashAir
 * `flashair-config`: a command line tool for configuring FlashAir
@@ -30,9 +30,10 @@ Features include:
 Read the [FlashAir documentation](https://flashair-developers.com/en/documents/api/)
 for more information about the API `tfatool` takes advantage of.
 
-# Usage
+# Usage guide
 ## Using the `flashair-util` script
 ### Help menu
+
 ```
 $ flashair-util -h
 usage: flashair-util [-h] [-l] [-c] [-s] [-S {time,name,all}] [-r REMOTE_DIR]
@@ -74,6 +75,7 @@ File filters:
 ```
 
 ### Example 1: sync newly created files on FlashAir card
+
 Watch for new files on the FlashAir SD card. When new files are found,
 write them to a specified local directory.
 
