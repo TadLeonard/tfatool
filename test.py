@@ -3,6 +3,7 @@ import arrow
 
 from urllib import parse
 from tfatool.info import Config, WifiMode, DriveMode
+from tfatool.info import Upload, WriteProtectMode
 from tfatool.config import config
 from tfatool import command, upload
 
@@ -89,3 +90,10 @@ def test_datetime_str_encode():
     as_string = upload._str_encode_time(datetime_val)
     assert as_string == "0x00340153"
  
+
+def test_upload_post_url():
+    docs_url = "http://flashair/upload.cgi?WRITEPROTECT=ON"  # from docs
+    wp = upload.prep_post(**{Upload.write_protect:
+                             WriteProtectMode.on})
+    assert docs_url == wp.url
+
