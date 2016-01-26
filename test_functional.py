@@ -18,12 +18,22 @@ fns = [
     
 ]
 
-upload.upload_file("README.md", dest="/DCIM")
-upload.delete_file("/DCIM/README.md")
+
+def test_upload_delete():
+    upload.delete_file("/DCIM/README.md")
+    files = command.list_files(remote_dir="/DCIM")
+    assert not any(f.filename == "README.md" for f in files)
+    upload.upload_file("README.md", dest="/DCIM")
+    files = command.list_files(remote_dir="/DCIM")
+    assert any(f.filename == "README.md" for f in files)
+    upload.delete_file("/DCIM/README.md")
+    assert not any(f.filename == "README.md" for f in files)
 
 
-for fn in fns:
-    val = fn()
-    print("\n\n*** Command {}:\n{} (type: {})".format(
-          fn.__name__, val, type(val)))
+def test_smoke():
+    """Smoke test: just runs every command.cgi function"""
+    for fn in fns:
+        val = fn()
+        print("\n\n*** Command {}:\n{} (type: {})".format(
+              fn.__name__, val, type(val)))
 
