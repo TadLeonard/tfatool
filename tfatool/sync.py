@@ -47,7 +47,7 @@ def by_files(to_sync, dest="."):
 def by_time(*filters, remote_dir=DEFAULT_DIR, dest=".", count=1):
     """Sync most recent file by date, time attribues"""
     files = command.list_files(*filters, remote_dir=remote_dir)
-    most_recent = sorted(files, key=lambda f: (f.date, f.time))
+    most_recent = sorted(files, key=lambda f: f.datetime)
     to_sync = most_recent[-count:]
     logger.info("Files to sync:\n{}".format(
         "\n".join("  " + f.filename for f in to_sync)))
