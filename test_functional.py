@@ -19,6 +19,7 @@ fns = [
 ]
 
 upload.upload_file("README.md", dest="/DCIM")
+upload.delete_file("/DCIM/README.md")
 
 
 for fn in fns:

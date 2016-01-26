@@ -21,7 +21,7 @@ def upload_file(local_path: str, url=URL, dest=DEFAULT_DIR):
     if ud.text != ResponseCode.success:
         raise UploadError("Failed to set creation time", ct)
     pf = post_file(local_path, url=url)
-    if pf.text != ResponseCode.success:
+    if pf.status_code != 200:
         raise UploadError("Failed to post file", pf)
 
 
