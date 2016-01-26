@@ -1,4 +1,7 @@
-from tfatool import command
+import logging
+logging.basicConfig(level=logging.DEBUG, style="{",
+                    format="{asctime} | {levelname} | {name} | {message}")
+from tfatool import command, upload
 
 
 fns = [
@@ -14,6 +17,9 @@ fns = [
     command.get_wifi_mode,
     
 ]
+
+upload.upload_file("README.md", dest="/DCIM")
+
 
 for fn in fns:
     val = fn()
