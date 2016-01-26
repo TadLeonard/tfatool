@@ -19,6 +19,7 @@ logging.basicConfig(level=logging.INFO, style="{",
 logging.getLogger("requests").setLevel(logging.WARNING)
 
 parser = ArgumentParser()
+parser.add_argument("-v", "--verbose", action="store_true")
 
 actions = parser.add_argument_group("Actions")
 actions.add_argument("-l", "--list-files", action="store_true")
@@ -32,6 +33,8 @@ actions.add_argument("-S", "--sync-once", default=False,
                           "REMOTE_DIR to LOCAL_DIR, then quit")
 
 setup = parser.add_argument_group("Setup")
+setup.add_argument("-y", "--sync-direction", choices=["up", "down", "both"],
+                   help="'up' to upload, 'down' to download")
 setup.add_argument("-r", "--remote-dir", default=info.DEFAULT_DIR,
                    help="FlashAir directory to work with (default: {})".format(
                         info.DEFAULT_DIR))
@@ -55,9 +58,11 @@ filt.add_argument("-T", "--latest-date",
 
 def run():
     args = parser.parse_args()
-    filters = []
+    if args.verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
 
     # filename filters
+    filters = []
     if args.only_jpg:
         jpg_filter = lambda f: f.filename.lower().endswith("jpg")
         filters.append(jpg_filter)
