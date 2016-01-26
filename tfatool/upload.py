@@ -11,9 +11,9 @@ from requests import RequestException
 
 
 def upload_file(local_path: str, url=URL, dest=DEFAULT_DIR):
-    #wp = set_write_protect(WriteProtectMode.on, url=url)
-    #if wp.text != ResponseCode.success:
-    #    raise UploadError("Failed to set write protect", wp)
+    wp = set_write_protect(WriteProtectMode.on, url=url)
+    if wp.text != ResponseCode.success:
+        raise UploadError("Failed to set write protect", wp)
     ud = set_upload_dir(dest, url=url)
     if ud.text != ResponseCode.success:
         raise UploadError("Failed to set upload directory", ud)
@@ -23,6 +23,9 @@ def upload_file(local_path: str, url=URL, dest=DEFAULT_DIR):
     pf = post_file(local_path, url=url)
     if pf.status_code != 200:
         raise UploadError("Failed to post file", pf)
+    wp = set_write_protect(WriteProtectMode.off, url=url)
+    if wp.text != ResponseCode.success:
+        raise UploadError("Failed to set write protect", wp)
 
 
 def set_write_protect(mode: WriteProtectMode, url=URL):
