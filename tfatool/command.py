@@ -91,7 +91,16 @@ def _decode_time(date_val: int, time_val: int):
     hour = time_val >> 11
     minute = ((time_val >> 5) & 0b111111)
     second = (time_val & 0b11111) * 2
-    return arrow.get(year, month, day, hour, minute, second)
+    try:
+        decoded = arrow.get(year, month, day, hour, minute, second)
+    except ValueError:
+        logger.warning("Invalid date: {:04d}-{:02d}-{:02d}".format(
+                       year, month, day))
+        year = max(1980, year)  # FAT32 doesn't go higher
+        month = min(max(1, month), 12)
+        day = max(1, day)
+        decoded = arrow.get(year, month, day, hour, minute, second)
+    return decoded
 
 
 AttrInfo = namedtuple(
