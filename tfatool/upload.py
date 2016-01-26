@@ -11,33 +11,33 @@ from requests import RequestException
 
 
 def upload_file(local_path: str, url=URL, dest=DEFAULT_DIR):
-    wp = set_write_protect(WriteProtectMode.on, url=url)
-    if wp.text != ResponseCode.success:
-        raise RequestException("Failed to set write protect")
+    #wp = set_write_protect(WriteProtectMode.on, url=url)
+    #if wp.text != ResponseCode.success:
+    #    raise UploadError("Failed to set write protect", wp)
     ud = set_upload_dir(dest, url=url)
     if ud.text != ResponseCode.success:
-        raise RequestException("Failed to set upload directory")
+        raise UploadError("Failed to set upload directory", ud)
     ct = set_creation_time(local_path, url=url)
     if ud.text != ResponseCode.success:
-        raise RequestException("Failed to set creation time")
+        raise UploadError("Failed to set creation time", ct)
     pf = post_file(local_path, url=url)
     if pf.text != ResponseCode.success:
-        raise RequestException("Failed to post file")
+        raise UploadError("Failed to post file", pf)
 
 
 def set_write_protect(mode: WriteProtectMode, url=URL):
-    return post(url=url, **{Upload.write_protect: mode})
+    return get(url=url, **{Upload.write_protect: mode})
 
 
-def set_remote_dir(remote_dir: str, url=URL):
-    return post(url=url, **{Upload.directory: remote_dir})
+def set_upload_dir(remote_dir: str, url=URL):
+    return get(url=url, **{Upload.directory: remote_dir})
 
 
 def set_creation_time(local_path: str, url=URL):
     ctime = os.stat(local_path).st_ctime
-    fat_time = _encode_ctime(ctime)
+    fat_time = _encode_time(ctime)
     encoded_time = _str_encode_time(fat_time)
-    return post(url=url, **{Upload.creation_time: encoded_time})
+    return get(url=url, **{Upload.creation_time: encoded_time})
 
 
 def post_file(local_path: str, url=URL):
@@ -46,17 +46,27 @@ def post_file(local_path: str, url=URL):
 
 
 def delete_file(remote_file: str, url=URL):
-    return post(url=url, **{Upload.delete: remote_file})
+    return get(url=url, **{Upload.delete: remote_file})
 
 
 def post(url=URL, req_kwargs=None, **params):
-    req_kwargs = req_kwargs or {}
-    params = {key.name: value for key, value in params.items()}
-    prepped_reqeust = _prep_post(url=url, req_kwargs=req_kwargs, **params)
+    prepped_request = prep_post(url, req_kwargs, **params)
     return cgi.send(prepped_request)
 
 
-_prep_post = partial(cgi.prep_post, cgi.Entrypoint.upload)
+def get(url=URL, req_kwargs=None, **params):
+    prepped_request = prep_get(url, req_kwargs, **params)
+    return cgi.send(prepped_request)
+
+
+def prep_req(prep_method, url=URL, req_kwargs=None, **params):
+    req_kwargs = req_kwargs or {}
+    params = {key.value: value for key, value in params.items()}
+    return prep_method(url=url, req_kwargs=req_kwargs, **params)
+
+
+prep_get = partial(prep_req, partial(cgi.prep_get, cgi.Entrypoint.upload))
+prep_post = partial(prep_req, partial(cgi.prep_post, cgi.Entrypoint.upload))
 
 
 def _str_encode_time(encoded_time: int):
@@ -71,3 +81,13 @@ def _encode_time(ctime: float):
     time_val = (dt.hour << 11) | (dt.minute << 5) | math.floor(secs / 2)
     return (date_val << 16) | time_val
 
+
+class UploadError(RequestException):
+    def __init__(self, msg, response):
+        self.msg = msg
+        self.response = response
+
+    def __str__(self):
+        return "{}: {}".format(self.msg, self.response)
+
+    __repr__ = __str__
