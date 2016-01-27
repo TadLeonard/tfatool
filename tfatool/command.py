@@ -19,6 +19,12 @@ def list_files(*filters, remote_dir=DEFAULT_DIR, url=URL):
     return (f for f in files if all(filt(f) for filt in filters))
 
 
+def list_files_raw(*filters, remote_dir=DEFAULT_DIR, url=URL):
+    response = _get(Operation.list_files, url, DIR=remote_dir)
+    files = _split_file_list_raw(response.text)
+    return (f for f in files if all(filt(f) for filt in filters))
+
+
 def count_files(remote_dir=DEFAULT_DIR, url=URL):
     response = _get(Operation.count_files, url, DIR=remote_dir)
     return int(response.text)
@@ -68,6 +74,8 @@ def get_wifi_mode(url=URL) -> WifiMode:
 
 FileInfo = namedtuple(
     "FileInfo", "directory filename size attribute datetime")
+RawFileInfo = namedtuple(
+    "RawFileInfo", "directory filename size attribute date time")
 
 
 def _split_file_list(text):
@@ -82,6 +90,15 @@ def _split_file_list(text):
             attribute = _decode_attribute(attr_val)
             yield FileInfo(directory, filename,
                            size, attribute, timeinfo)
+
+
+def _split_file_list_raw(text):
+    lines = text.split("\r\n")
+    for line in lines:
+        groups = line.split(",")
+        if len(groups) == 6:
+            directory, filename, *remaining = groups
+            yield RawFileInfo(directory, filename, *map(int, remaining))
 
 
 def _decode_time(date_val: int, time_val: int):
