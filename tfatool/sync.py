@@ -37,17 +37,24 @@ class Monitor:
     def _run(self, method):
         assert self.thread is None
         self.running.set()
-        self.thread = threading.Thread(target=method)
+        self.thread = threading.Thread(target=self._run_sync, args=(method,))
         self.thread.start()
+
+    def _run_sync(self, method):
+        files = method(*self._filters, local_dir=self._local_dir,
+                       remote_dir=self._remote_dir)
+        while self.running.is_set():
+            next(files)
+            time.sleep(0.2)
         
     def sync_both(self):
-        self._run(self.up_down_by_arrival)
+        self._run(up_down_by_arrival)
 
     def sync_up(self):
-        self._run(self.up_by_arrival)
+        self._run(up_by_arrival)
 
     def sync_down(self):
-        self._run(self.down_by_arrival)
+        self._run(down_by_arrival)
 
     def stop(self):
         self.running.clear()
@@ -57,75 +64,81 @@ class Monitor:
             self.thread.join()
         self.thread = None
 
-    def up_down_by_arrival(self):
-        filters = self._filters
-        local_dir = self._local_dir
-        remote_dir = self._remote_dir
-        local = set(list_local_files(*filters, local_dir=local_dir))
-        remote = set(command.list_files(*filters, remote_dir=remote_dir))
-        _notify_sync_ready(len(local), local_dir, remote_dir)   
-        _notify_sync_ready(len(remote), remote_dir, local_dir)
-        new_names = set()
-        while self.running.is_set():
-            new_local = set(list_local_files(*filters, local_dir=local_dir))
-            new_arrivals = _whats_new(new_local, local, new_names)
-            if new_arrivals:
-                new_names.update(f.filename for f in new_arrivals)
-                logger.info("Files to upload:\n{}".format(
-                    "\n".join("  " + f.filename for f in new_arrivals)))
-                up_by_files(new_arrivals, remote_dir)
-                local = new_local
-                _notify_sync_ready(len(local), local_dir, remote_dir)
-            new_remote = set(command.list_files(*filters, remote_dir=remote_dir))
-            new_arrivals = _whats_new(new_remote, remote, new_names)
-            if new_arrivals:
-                new_names.update(f.filename for f in new_arrivals)
-                logger.info("Files to download:\n{}".format(
-                    "\n".join("  " + f.filename for f in new_arrivals)))
-                down_by_files(new_arrivals, local_dir)
-                remote = new_remote
-                _notify_sync_ready(len(remote), remote_dir, local_dir)
-            time.sleep(0.3)
 
-    def up_by_arrival(self):
-        local_dir = self._local_dir
-        remote_dir = self._remote_dir
-        filters = self._filters
-        old_files = set(list_local_files(*filters, local_dir=local_dir))
-        _notify_sync_ready(len(old_files), local_dir, remote_dir)
-        while self.running.is_set():
-            new_files = set(list_local_files(*filters, local_dir=local_dir))
-            if new_files > old_files: 
-                new_arrivals = new_files - old_files
-                logger.info("Files to upload:\n{}".format(
-                    "\n".join("  " + f.filename for f in new_arrivals)))
-                up_by_files(new_arrivals, remote_dir)
-                old_files = new_files
-                _notify_sync_ready(len(old_files), local_dir, remote_dir)
-            time.sleep(0.1)
+def up_down_by_arrival(*filters, local_dir=".",
+                       remote_dir=DEFAULT_REMOTE_DIR):
+    """Monitors a local directory and a remote FlashAir directory and
+    generates sets of new files to be uploaded or downloaded.
+    Sets to upload are generated in a tuple
+    like ("up", {...}), while download sets to download 
+    are generated in a tuple like ("down", {...}). The generator yields
+    before each upload or download actually takes place."""
+    local = set(list_local_files(*filters, local_dir=local_dir))
+    remote = set(command.list_files(*filters, remote_dir=remote_dir))
+    _notify_sync_ready(len(local), local_dir, remote_dir)   
+    _notify_sync_ready(len(remote), remote_dir, local_dir)
+    new_names = set()
+    while True:
+        new_local = set(list_local_files(*filters, local_dir=local_dir))
+        new_arrivals = _whats_new(new_local, local, new_names)
+        if new_arrivals:
+            new_names.update(f.filename for f in new_arrivals)
+            logger.info("Files to upload:\n{}".format(
+                "\n".join("  " + f.filename for f in new_arrivals)))
+            yield "up", new_arrivals
+            up_by_files(new_arrivals, remote_dir)
+            local = new_local
+            _notify_sync_ready(len(local), local_dir, remote_dir)
+        new_remote = set(command.list_files(*filters, remote_dir=remote_dir))
+        new_arrivals = _whats_new(new_remote, remote, new_names)
+        if new_arrivals:
+            new_names.update(f.filename for f in new_arrivals)
+            logger.info("Files to download:\n{}".format(
+                "\n".join("  " + f.filename for f in new_arrivals)))
+            yield "down", new_arrivals
+            down_by_files(new_arrivals, local_dir)
+            remote = new_remote
+            _notify_sync_ready(len(remote), remote_dir, local_dir)
 
-    def down_by_arrival(self):
-        """Monitor `remote_dir` on FlashAir card for new files.
-        When new files are found, should they pass all of the given
-        `filters`, sync them with `local_dir` local directory."""
-        remote_dir = self._remote_dir
-        local_dir = self._local_dir
-        filters = self._filters
-        logger.info("Building remote file list")
-        old_files = set(command.list_files(*filters, remote_dir=remote_dir))
-        command.memory_changed()  # clear change status to start
-        _notify_sync_ready(len(old_files), remote_dir, local_dir)
-        while self.running.is_set():
-            if command.memory_changed():
-                new_files = set(command.list_files(
-                    *filters, remote_dir=remote_dir))
-                new_arrivals = new_files - old_files
-                logger.info("Files to download:\n{}".format(
-                    "\n".join("  " + f.filename for f in new_arrivals)))
-                down_by_files(new_arrivals, local_dir)
-                old_files = new_files
-                _notify_sync_ready(len(old_files), remote_dir, local_dir)
-            time.sleep(0.3)
+
+def up_by_arrival(*filters, local_dir=".", remote_dir=DEFAULT_REMOTE_DIR):
+    """Monitors a local directory and
+    generates sets of new files to be uploaded to FlashAir.
+    Sets to upload are generated in a tuple like ("up", {...}).
+    The generator yields before each upload actually takes place."""
+    old_files = set(list_local_files(*filters, local_dir=local_dir))
+    _notify_sync_ready(len(old_files), local_dir, remote_dir)
+    while True:
+        new_files = set(list_local_files(*filters, local_dir=local_dir))
+        if new_files > old_files: 
+            new_arrivals = new_files - old_files
+            logger.info("Files to upload:\n{}".format(
+                "\n".join("  " + f.filename for f in new_arrivals)))
+            yield new_arrivals
+            up_by_files(new_arrivals, remote_dir)
+            old_files = new_files
+            _notify_sync_ready(len(old_files), local_dir, remote_dir)
+
+
+def down_by_arrival(*filters, local_dir=".", remote_dir=DEFAULT_REMOTE_DIR):
+    """Monitors a remote FlashAir direcotry and generates sets of
+    new files to be downloaded from FlashAir.
+    Sets to download are generated in a tuple like ("up", {...}).
+    The generator yields before each download actually takes place."""
+    old_files = set(command.list_files(*filters, remote_dir=remote_dir))
+    command.memory_changed()  # clear change status to start
+    _notify_sync_ready(len(old_files), remote_dir, local_dir)
+    while True:
+        if command.memory_changed():
+            new_files = set(command.list_files(
+                *filters, remote_dir=remote_dir))
+            new_arrivals = new_files - old_files
+            logger.info("Files to download:\n{}".format(
+                "\n".join("  " + f.filename for f in new_arrivals)))
+            yield new_arrivals
+            down_by_files(new_arrivals, local_dir)
+            old_files = new_files
+            _notify_sync_ready(len(old_files), remote_dir, local_dir)
 
 
 def _whats_new(new, old, processed):
