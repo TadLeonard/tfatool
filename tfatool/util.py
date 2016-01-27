@@ -62,7 +62,7 @@ def _parse_time(time_els):
     if len(time_els) == 1:
         time_vals = 0, 0, 0 
     elif len(time_els) == 2:
-        time_vals = *time_vals, 0  # assumed H:M
+        time_vals = *time_els, 0  # assumed H:M
     elif len(time_els) == 3:
         time_vals = time_els  # H:M:S
     else:
