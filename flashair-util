@@ -4,14 +4,13 @@
 import logging
 import re
 import time
-import arrow
 
 from argparse import ArgumentParser
 from functools import partial
 from pathlib import Path
 
 from requests import RequestException
-from tfatool import command, sync, info, cgi
+from tfatool import command, sync, info, cgi, util
 
 
 logger = logging.getLogger(__name__)
@@ -76,16 +75,25 @@ def run():
     # datetme filters
     if args.earliest_date:
         try:
-            earliest_date = arrow.get(args.earliest_date)
+            earliest_date = util.parse_datetime(args.earliest_date)
             filters.append(lambda f: f.datetime > earliest_date)
-        except arrow.parser.ParserError as e:
+        except ValueError as e:
             parser.error("Invalid earliest date: {}".format(str(e)))
     if args.latest_date:
         try:
-            latest_date = arrow.get(args.latest_date)
+            latest_date = util.parse_datetime(args.latest_date)
             filters.append(lambda f: f.datetime < latest_date)
-        except arrow.parser.ParserError as e:
+        except ValueError as e:
             parser.error("Invalid latest date: {}".format(str(e)))
+
+    if args.earliest_date or args.latest_date:
+        early = "beginning of time"
+        late = "end of time"
+        if args.earliest_date:
+            early = earliest_date.format("YYYY-MM-DD HH:mm:ss")
+        if args.latest_date:
+            late = latest_date.format("YYYY-MM-DD HH:mm:ss")
+        logger.info("Filtering from [{}] to [{}]".format(early, late))
 
     try:
         if args.list_files:
