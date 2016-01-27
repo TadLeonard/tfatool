@@ -43,9 +43,10 @@ for more information about the API `tfatool` takes advantage of.
 
 ```
 $ flashair-util -h
-usage: flashair-util [-h] [-l] [-c] [-s] [-S {time,name,all}] [-r REMOTE_DIR]
-                     [-d LOCAL_DIR] [-j] [-n N_FILES] [-k MATCH_REGEX]
-                     [-t EARLIEST_DATE] [-T LATEST_DATE]
+usage: flashair-util [-h] [-v] [-l] [-c] [-s] [-S {time,name,all}]
+                     [-y {up,down,both}] [-r REMOTE_DIR] [-d LOCAL_DIR] [-j]
+                     [-n N_FILES] [-k MATCH_REGEX] [-t EARLIEST_DATE]
+                     [-T LATEST_DATE]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -77,13 +78,48 @@ File filters:
   -k MATCH_REGEX, --match-regex MATCH_REGEX
                         filter for files that match the given pattern
   -t EARLIEST_DATE, --earliest-date EARLIEST_DATE
-                        work on only files AFTER datetime similar to YYYY-MM-
-                        DD HH:SS
+                        work on only files AFTER datetime of any reasonable
+                        format such as YYYY, YYYY-MM, MM/DD, HH:mm (today), or
+                        'YYYY-MM-DD HH:mm:ss'
   -T LATEST_DATE, --latest-date LATEST_DATE
-                        work on only files BEFORE datetime similar to YYYY-MM-
-                        DD HH:SS
-
+                        work on only files BEFORE given datetime
 ```
+
+### Prelude: filtering files by name, time
+
+All operations `flashair-util` carries out (both remote and local) can be restricted
+to a subset of files with some simple arguments. If we're listing or counting files, we can
+filter which files get listed or counted. If we're synchronizing remote files to our
+local filesystem, we can filter the kinds of files we download. The same applies
+for uploads; we can pick and choose certain files on our filesystem to send to FlashAir.
+
+#### Filtering by date and time
+
+Date/times are parsed from the command line in a human-friendly manner.
+If you pass "1998", it'll be parsed as "1998-01-01 00:00:00". Passing
+a string like "11/4" or "11-04" will be be seen as "{current year}-11-04 00:00:00".
+
+The `-t` or `--earliest-date` option filters for only files AFTER the given date/time.
+The `-T` or `--latest-date` option filters for only files BEFORE the given date/time.
+You can use `-t` and `-T` together to filter for files within a slice of time. Some examples:
+
+* `-T 2015`: all files created before 2015
+* `-t 18:00`: all files created this evening (after 6:00 pm today)
+* `-t 2014 -T 2015`: all files created in 2014
+* `-t 11/4 -T 11/28`: all files created between Nov. 4 and Nov 28 of this year
+* `-t '2016-4-02 11:30' -T '2016/04/02 13:30`: all files created Apr.
+   2nd between 11:30 am and 2:30 pm.
+* `-t 7:00 -T 11:00`: all files created this morning
+
+#### Filtering by filename
+
+Files can also be filtered by their name. The `-j` or `--only-jpg` option
+filters for JPEG files. Filters of greater complexity can be made with
+the `-k` or `--match-regex` option, which matches the filename against
+a given regular expression pattern. Some examples:
+
+* `--match-regex '.+\.raw'`: match all files ending in `.raw`
+* `-k 'IMG-08.+\.jpg'`: match all JPEGs starting with `IMG-08`
 
 ### Example 1: sync newly created files on FlashAir card
 
@@ -92,8 +128,8 @@ write them to a specified local directory.
 
 ```
 $ flashair-util -s -d path/to/files --only-jpg
-2016-01-22 21:29:12,336 | INFO | __main__ | Syncing files from /DCIM/100__TSB to path/to/files
-2016-01-22 21:28:44,035 | INFO | __main__ | Creating directory 'path/to/files'
+2016-01-22 21:29:12,336 | INFO | main | Syncing files from /DCIM/100__TSB to path/to/files
+2016-01-22 21:28:44,035 | INFO | main | Creating directory 'path/to/files'
 2016-01-22 21:29:27,412 | INFO | tfatool.sync | Ready to sync new files (39 existing files ignored)
 ```
 
@@ -122,7 +158,7 @@ are not overwritten.
 
 ```
 flashair-util -S all -d stuff/ -j -t '2015-12-15 15:00' -T 2016-01-12
-2016-01-22 22:29:02,228 | INFO | __main__ | Syncing files from /DCIM/100__TSB to stuff/
+2016-01-22 22:29:02,228 | INFO | main | Syncing files from /DCIM/100__TSB to stuff/
 2016-01-22 22:29:02,330 | INFO | tfatool.sync | File 'stuff/IMG_0800.JPG' already exists; not syncing from SD card
 2016-01-22 22:29:02,331 | INFO | tfatool.sync | Copying remote file IMG_0801.JPG to stuff/IMG_0801.JPG
 2016-01-22 22:29:02,331 | INFO | tfatool.sync | Requesting file: http://flashair/DCIM/100__TSB/IMG_0801.JPG
@@ -319,7 +355,16 @@ only_camille_photos = [f for f in all_files if "camille" in f.filename.lower()]
 sync.down_by_files(only_camille_photos, local_dir="/home/tad/Pictures/camille")
 ```
 
-### Example 3: watching for newly created files
+### Example 3A: watching for newly created files
+
+The `tfatool.sync` module contains three generator functions for
+monitoring your FlashAir device and/or your local filesystem for
+new files. When new files are found, they're uploaded and/or downloaded
+to and/or from FlashAir.
+
+...
+
+### Example 3B: watching for newly created files *in a separate thread*
 
 The `tfatool.sync.Monitor` object watches your FlashAir device
 and/or your local filesystem
