@@ -1,7 +1,8 @@
+import os
 import logging
 logging.basicConfig(level=logging.DEBUG, style="{",
                     format="{asctime} | {levelname} | {name} | {message}")
-from tfatool import command, upload
+from tfatool import command, upload, sync
 
 
 fns = [
@@ -22,7 +23,7 @@ def test_upload_delete():
     upload.delete_file("/DCIM/README.md")
     files = command.list_files(remote_dir="/DCIM")
     assert not any(f.filename == "README.md" for f in files)
-    upload.upload_file("README.md", dest="/DCIM")
+    upload.upload_file("README.md", remote_dir="/DCIM")
     files = command.list_files(remote_dir="/DCIM")
     assert any(f.filename == "README.md" for f in files)
     upload.delete_file("/DCIM/README.md")
@@ -45,3 +46,17 @@ def test_smoke():
         print("\n\n*** Command {}:\n{} (type: {})".format(
               fn.__name__, val, type(val)))
 
+
+def test_sync_up():
+    test_names = ["__testfile{0}".format(n) for n in range(7)]
+    name_filter = lambda f: f.filename.startswith("__testfile")
+    for f in test_names:
+        os.system("touch {}".format(f))
+        upload.delete_file("/DCIM/{}".format(f))
+    sync.up_by_time(name_filter, remote_dir="/DCIM")
+    files = command.list_files(name_filter, remote_dir="/DCIM")
+    files = list(files)
+    assert len(files) == 1
+    assert files[0].path == "/DCIM/__testfile6"
+    upload.delete_file(files[0].path)
+ 
