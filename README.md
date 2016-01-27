@@ -347,7 +347,7 @@ monitor.stop()  # prompt thread to stop
 monitor.join()  # wait for thread to stop
 ```
 
-Downloading new files as they appaer:
+Downloading new files as they appear:
 
 ```python
 # Sync only .raw image files that are smaller than 3 MB
