@@ -120,8 +120,6 @@ def _decode_time(date_val: int, time_val: int):
     try:
         decoded = arrow.get(year, month, day, hour, minute, second)
     except ValueError:
-        logger.warning("Invalid date: {:04d}-{:02d}-{:02d}".format(
-                       year, month, day))
         year = max(1980, year)  # FAT32 doesn't go higher
         month = min(max(1, month), 12)
         day = max(1, day)
