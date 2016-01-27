@@ -51,11 +51,11 @@ filt.add_argument("-n","--n-files", type=int, default=1,
 filt.add_argument("-k", "--match-regex", default=None,
                    help="filter for files that match the given pattern")
 filt.add_argument("-t", "--earliest-date",
-                   help="work on only files AFTER datetime similar to "
-                        "YYYY-MM-DD HH:SS")
+                   help="work on only files AFTER datetime of any "
+                        "reasonable format such as YYYY, YYYY-MM, "
+                        "MM/DD, HH:mm (today), or 'YYYY-MM-DD HH:mm:ss'")
 filt.add_argument("-T", "--latest-date",
-                   help="work on only files BEFORE datetime similar to "
-                        "YYYY-MM-DD HH:SS")
+                   help="work on only files BEFORE given datetime")
 
 
 def run():
