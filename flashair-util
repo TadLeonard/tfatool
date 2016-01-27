@@ -35,9 +35,9 @@ actions.add_argument("-S", "--sync-once", default=False,
 setup = parser.add_argument_group("Setup")
 setup.add_argument("-y", "--sync-direction", choices=["up", "down", "both"],
                    help="'up' to upload, 'down' to download")
-setup.add_argument("-r", "--remote-dir", default=info.DEFAULT_DIR,
+setup.add_argument("-r", "--remote-dir", default=info.DEFAULT_REMOTE_DIR,
                    help="FlashAir directory to work with (default: {})".format(
-                        info.DEFAULT_DIR))
+                        info.DEFAULT_REMOTE_DIR))
 setup.add_argument("-d", "--local-dir", default=".",
                    help="local directory to work with (default: working dir)")
 
@@ -64,7 +64,7 @@ def run():
     # filename filters
     filters = []
     if args.only_jpg:
-        jpg_filter = lambda f: f.filename.lower().endswith("jpg")
+        jpg_filter = lambda f: f.filename.lower().endswith(".jpg")
         filters.append(jpg_filter)
     if args.match_regex:
         regex_filter = lambda f: re.match(args.match_regex, f.filename)
