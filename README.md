@@ -15,12 +15,13 @@ from the command line.
 
   Action                                                      | Command                                         
   ----------------------------------------------------------- | ------------------------------------------------
-  Monitor FlashAir for new JPEGs, download to ~/Photos        | `flashair-util -s -d /home/tad/Photos --only-jpeg`
-  Monitor working dir for new files, upload to FlashAir       | `flashair-util -s --sync-direction up`
+  Monitor FlashAir for new JPEGs, download to ~/Photos        | `flashair-util -s -d /home/tad/Photos --only-jpg`
+  Monitor working dir for new files, upload to FlashAir       | `flashair-util -s -y up`
   Monitor a local and remote dir for new files, sync them     | `flashair-util -s -y both`
-  Sync the 10 most recent files with a local dir, then quit   | `flashair-util -S time -d images/new/`  
-  Sync files created between Jan 23rd and Jan 26th           | `flashair-util -S all -t 2016-01-23 -T 2016-01-26`
-  Sync (up and down) 5 most recent files of a certain name    | `flashair-util -S time -k 'IMG-08.+\.raw' -y both`      
+  Sync down the 10 most recent to a local dir, then quit      | `flashair-util -S time -d images/new/`
+  Sync down files created between Jan 23rd and Jan 26th       | `flashair-util -S all -t 1-23 -T 01/26`
+  Sync files (up AND down) created this afternoon             | `flashair-util -S all -t 12:00 -T 16:00 -y  both`
+  Sync (up and down) 5 most recent files of a certain name    | `flashair-util -S time -k 'IMG-08.+\.raw' -y both`
   Change FlashAir network SSID                                | `flashair-config --wifi-ssid myflashairnetwork`
   Show FlashAir network password & firmware version           | `flashair-config --show-wifi-key --show-fw-version`
 
