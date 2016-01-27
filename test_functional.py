@@ -1,5 +1,7 @@
-import os
 import logging
+import os
+import threading
+import time
 logging.basicConfig(level=logging.DEBUG, style="{",
                     format="{asctime} | {levelname} | {name} | {message}")
 from tfatool import command, upload, sync
@@ -47,16 +49,58 @@ def test_smoke():
               fn.__name__, val, type(val)))
 
 
-def test_sync_up():
-    test_names = ["__testfile{0}".format(n) for n in range(7)]
+def _prepare_test_files():
+    test_names = ["__testfile{0}".format(n) for n in range(2, -1, -1)]
     name_filter = lambda f: f.filename.startswith("__testfile")
     for f in test_names:
         os.system("touch {}".format(f))
         upload.delete_file("/DCIM/{}".format(f))
-    sync.up_by_time(name_filter, remote_dir="/DCIM")
+    return test_names, name_filter
+
+
+def _teardown_test_files(names):
+    for name in names:
+        os.remove(name)
+
+
+def test_sync_up_by_time():
+    names, name_filter = _prepare_test_files()
+    sync.up_by_time(name_filter, remote_dir="/DCIM", count=1)
     files = command.list_files(name_filter, remote_dir="/DCIM")
     files = list(files)
     assert len(files) == 1
-    assert files[0].path == "/DCIM/__testfile6"
+    assert files[0].path == "/DCIM/__testfile0"
     upload.delete_file(files[0].path)
+    _teardown_test_files(names)
  
+
+def test_sync_up_by_name():
+    names, name_filter = _prepare_test_files() 
+    sync.up_by_name(name_filter, remote_dir="/DCIM", count=2)
+    files = command.list_files(name_filter, remote_dir="/DCIM")
+    files = list(files)
+    assert len(files) == 2
+    assert [f.filename for f in files] == ["__testfile2", "__testfile1"]
+    for f in files:
+        upload.delete_file(f.path)
+    _teardown_test_files(names)
+
+
+def test_sync_up_by_arrival():
+    names, name_filter = _prepare_test_files() 
+    _teardown_test_files(names)
+
+    monitor = sync.Monitor(name_filter, remote_dir="/DCIM")
+    monitor.sync_up()
+    time.sleep(0.2)
+    _prepare_test_files()  # files get `touch`ed
+    time.sleep(2)
+    monitor.stop()
+    files = list(command.list_files(name_filter, remote_dir="/DCIM")) 
+
+    for f in files:
+        upload.delete_file(f.path) 
+    _teardown_test_files(names)
+
+    assert len(files) == len(names)
+
