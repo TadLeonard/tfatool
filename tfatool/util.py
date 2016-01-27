@@ -25,6 +25,8 @@ def _split_datetime(datetime_input):
         sep = "-"
     if not time_input:
         time_input = "00:00:00"
+    if len(date_input) == 4:
+        date_input = "{}-01-01".format(date_input)
 
     if "/" in date_input:
         sep = "/"
@@ -40,10 +42,7 @@ def _split_datetime(datetime_input):
 
 
 def _parse_date(date_els):
-    if not date_els:
-        now = arrow.now()
-        date_vals = now.year, now.month, now.day
-    elif len(date_els) == 2:
+    if len(date_els) == 2:
         # assumed to be year-month or month-year
         a, b = date_els
         if _is_year(a):
