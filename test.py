@@ -5,7 +5,7 @@ from urllib import parse
 from tfatool.info import Config, WifiMode, DriveMode
 from tfatool.info import Upload, WriteProtectMode
 from tfatool.config import config
-from tfatool import command, upload
+from tfatool import command, upload, util
 
 
 def test_config_construction():
@@ -97,3 +97,22 @@ def test_upload_post_url():
                              WriteProtectMode.on})
     assert docs_url == wp.url
 
+
+def test_datetime_from_month_year():
+    dt = util.parse_time("11-2015")
+    assert dt.year == 2015
+    assert dt.month == 11
+    assert dt.day == 1
+    assert dt.hour == 0
+    assert dt.second == 0
+
+
+def test_datetime_from_year_month():
+    dt = util.parse_time("2015-11")
+    assert dt.year == 2015
+    assert dt.month == 11
+    assert dt.day == 1
+    assert dt.hour == 0
+    assert dt.second == 0
+
+   
