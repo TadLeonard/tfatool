@@ -104,6 +104,7 @@ def test_datetime_from_month_year():
     assert dt.month == 11
     assert dt.day == 1
     assert dt.hour == 0
+    assert dt.minute == 0
     assert dt.second == 0
 
 
@@ -113,6 +114,29 @@ def test_datetime_from_year_month():
     assert dt.month == 11
     assert dt.day == 1
     assert dt.hour == 0
+    assert dt.minute == 0
     assert dt.second == 0
 
+
+def test_datetime_from_year_month_hour_min():
+    dt = util.parse_time("2015-11 4:11")
+    assert dt.year == 2015
+    assert dt.month == 11
+    assert dt.day == 1
+    assert dt.hour == 4
+    assert dt.minute == 11
+    assert dt.second == 0
+
+
+def test_datetime_from_month_year_hour_min_sec():
+    dt = util.parse_time("11-2015 4:11:12")
+    assert dt.year == 2015
+    assert dt.month == 11
+    assert dt.day == 1
+    assert dt.hour == 4
+    assert dt.minute == 11
+    assert dt.second == 12
+
    
+   
+    
