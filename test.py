@@ -155,7 +155,7 @@ def test_datetime_time_only():
     assert dt.day == now.day
     assert dt.hour == 11
     assert dt.minute == 22
-    assert dt.second == 0 
+    assert dt.second == 0
 
 
 def test_datetime_date_only():
@@ -166,3 +166,9 @@ def test_datetime_date_only():
     assert dt.month == 4
     assert dt.day == 1
 
+
+def test_datetime_year_only():
+    dt = util.parse_datetime("2015")
+    assert dt.year == 2015
+    assert dt.month == 1
+    
