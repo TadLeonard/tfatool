@@ -5,51 +5,56 @@ import arrow
 from functools import partial
 
 from . import cgi
-from .info import DEFAULT_DIR, DEFAULT_MASTERCODE, URL
+from .info import DEFAULT_REMOTE_DIR, DEFAULT_MASTERCODE, URL
 from .info import WriteProtectMode, Upload, ResponseCode
 from requests import RequestException
 
 
-def upload_file(local_path: str, url=URL, dest=DEFAULT_DIR):
-    wp = set_write_protect(WriteProtectMode.on, url=url)
-    if wp.text != ResponseCode.success:
-        raise UploadError("Failed to set write protect", wp)
-    ud = set_upload_dir(dest, url=url)
-    if ud.text != ResponseCode.success:
-        raise UploadError("Failed to set upload directory", ud)
-    ct = set_creation_time(local_path, url=url)
-    if ud.text != ResponseCode.success:
-        raise UploadError("Failed to set creation time", ct)
-    pf = post_file(local_path, url=url)
-    if pf.status_code != 200:
-        raise UploadError("Failed to post file", pf)
-    wp = set_write_protect(WriteProtectMode.off, url=url)
-    if wp.text != ResponseCode.success:
-        raise UploadError("Failed to set write protect", wp)
+def upload_file(local_path: str, url=URL, remote_dir=DEFAULT_REMOTE_DIR):
+    set_write_protect(WriteProtectMode.on, url=url)
+    set_upload_dir(remote_dir, url=url)
+    set_creation_time(local_path, url=url)
+    post_file(local_path, url=url)
+    set_write_protect(WriteProtectMode.off, url=url)
 
 
 def set_write_protect(mode: WriteProtectMode, url=URL):
-    return get(url=url, **{Upload.write_protect: mode})
+    response = get(url=url, **{Upload.write_protect: mode})
+    if response.text != ResponseCode.success:
+        raise UploadError("Failed to set write protect", response)
+    return response
 
 
 def set_upload_dir(remote_dir: str, url=URL):
-    return get(url=url, **{Upload.directory: remote_dir})
+    up = get(url=url, **{Upload.directory: remote_dir})
+    if response.text != ResponseCode.success:
+        raise UploadError("Failed to set upload directory", response)
+    return response
 
 
 def set_creation_time(local_path: str, url=URL):
     mtime = os.stat(local_path).st_mtime
     fat_time = _encode_time(mtime)
     encoded_time = _str_encode_time(fat_time)
-    return get(url=url, **{Upload.creation_time: encoded_time})
+    response = get(url=url, **{Upload.creation_time: encoded_time})
+    if response.text != ResponseCode.success:
+        raise UploadError("Failed to set creation time", response)
+    return repsonse
 
 
 def post_file(local_path: str, url=URL):
     files = {local_path: open(local_path, "rb")}
-    return post(url=url, req_kwargs=dict(files=files))
+    response = post(url=url, req_kwargs=dict(files=files))
+    if response.status_code != 200:
+        raise UploadError("Failed to post file", response)
+    return response
 
 
 def delete_file(remote_file: str, url=URL):
-    return get(url=url, **{Upload.delete: remote_file})
+    response = get(url=url, **{Upload.delete: remote_file})
+    if response.status_code != 200:
+        raise UploadError("Failed to delete file", response)
+    return response
 
 
 def post(url=URL, req_kwargs=None, **params):
@@ -94,3 +99,4 @@ class UploadError(RequestException):
         return "{}: {}".format(self.msg, self.response)
 
     __repr__ = __str__
+
