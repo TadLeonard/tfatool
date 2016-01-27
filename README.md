@@ -12,10 +12,12 @@ from the command line.
 
   Action                                                      | Command                                         
   ----------------------------------------------------------- | ------------------------------------------------
-  Watch FlashAir for new JPEGs, sync to local dir forever     | `flashair-util -s -d /home/tad/Photos --only-jpeg`
+  Watch FlashAir for new JPEGs, download to local dir forever | `flashair-util -s -d /home/tad/Photos --only-jpeg`
+  Watch working dir for new files, upload them to FlashAir    | `flashair-util -s -y up`
+  Watch sync new files in a local AND remote direcotry        | `flashair-util -s -y both`
   Sync the 10 most recent files with a local dir, then quit   | `flashair-util -S time -d images/new/`  
   Sync files created between Jan 23rd and Jan 26th            | `flashair-util -S all -t 2016-01-23 -T 2016-01-26`
-  Sync the five most recent RAW files of a certain name       | `flashair-util -S time -k 'IMG-08.+\.raw'`      
+  Sync (up and down) 5 most recent files of a certain name    | `flashair-util -S time -k 'IMG-08.+\.raw' -y both`      
   Change FlashAir network SSID                                | `flashair-config --wifi-ssid myflashairnetwork`
   Show FlashAir network password & firmware version           | `flashair-config --show-wifi-key --show-fw-version`
 
@@ -26,8 +28,9 @@ from the command line.
 * `flashair-util`: a command line tool for syncing, copying, listing files on FlashAir
 * `flashair-config`: a command line tool for configuring FlashAir
 * `tfatool.command`: abstraction of FlashAir's [command.cgi](https://flashair-developers.com/en/documents/api/commandcgi/)
+* `tfatool.upload`: abstraction of FlashAir's [upload.cgi](https://flashair-developers.com/en/documents/api/uploadcgi/)
 * `tfatool.config`: abstraction of FlashAir's [config.cgi](https://flashair-developers.com/en/documents/api/configcgi/)
-* `tfatool.sync`: functions to facilitate copying/syncing files from FlashAir
+* `tfatool.sync`: functions to facilitate copying/syncing files to and from FlashAir
 
 Read the [FlashAir documentation](https://flashair-developers.com/en/documents/api/)
 for more information about the API `tfatool` takes advantage of.
@@ -44,6 +47,7 @@ usage: flashair-util [-h] [-l] [-c] [-s] [-S {time,name,all}] [-r REMOTE_DIR]
 
 optional arguments:
   -h, --help            show this help message and exit
+  -v, --verbose
 
 Actions:
   -l, --list-files
@@ -55,6 +59,9 @@ Actions:
                         REMOTE_DIR to LOCAL_DIR, then quit
 
 Setup:
+  -y {up,down,both}, --sync-direction {up,down,both}
+                        'up' to upload, 'down' to download, 'both' for both
+                        (default: down)
   -r REMOTE_DIR, --remote-dir REMOTE_DIR
                         FlashAir directory to work with (default:
                         /DCIM/100__TSB)
@@ -85,7 +92,6 @@ write them to a specified local directory.
 $ flashair-util -s -d path/to/files --only-jpg
 2016-01-22 21:29:12,336 | INFO | __main__ | Syncing files from /DCIM/100__TSB to path/to/files
 2016-01-22 21:28:44,035 | INFO | __main__ | Creating directory 'path/to/files'
-2016-01-22 21:29:12,337 | INFO | __main__ | Waiting for newly arrived files...
 2016-01-22 21:29:27,412 | INFO | tfatool.sync | Ready to sync new files (39 existing files ignored)
 ```
 
@@ -99,6 +105,13 @@ Some time later, a new photo appears in the default remote directory.
 2016-01-22 21:30:05,866 | INFO | tfatool.sync | Wrote IMG_0802.JPG in 1.00 s (4.31 MB, 4.31 MB/s)
 ```
 
+File synchronizing can be done in one of three ways:
+
+1. Download only (default or with `-y down`/`--sync-direction down`)
+2. Upload (to FlashAir) only (`-y up`/`--sync-direction up`)
+3. Both (`-y both`/`--sync-direction both`)
+
+
 ### Example 2: sync subset of files on FlashAir *just once*
 
 Sync JPEG files that were created between December 15th, 2015 (at 3:00 pm)
@@ -109,7 +122,6 @@ are not overwritten.
 ```
 flashair-util -S all -d stuff/ -j -t '2015-12-15 15:00' -T 2016-01-12
 2016-01-22 22:29:02,228 | INFO | __main__ | Syncing files from /DCIM/100__TSB to stuff/
-2016-01-22 22:29:02,229 | INFO | __main__ | Retreiving ALL matched files
 2016-01-22 22:29:02,330 | INFO | tfatool.sync | File 'stuff/IMG_0800.JPG' already exists; not syncing from SD card
 2016-01-22 22:29:02,331 | INFO | tfatool.sync | Copying remote file IMG_0801.JPG to stuff/IMG_0801.JPG
 2016-01-22 22:29:02,331 | INFO | tfatool.sync | Requesting file: http://flashair/DCIM/100__TSB/IMG_0801.JPG
@@ -124,6 +136,8 @@ Other simple `--sync-once` examples include:
 
 * Just grab the most recent JPEG: `flashair-util -S time -n 1`
 * Sync most recent 5 files by timestamp: `flashair-util -S time --n-files 5`
+* Make sure `stuff/` local dir and `/DCIM` remote dir are completely
+  synchronized: `flashair-util -S all -y both -d stuff/ -r /DCIM`
 * Of all files that end in `08.JPG`, sync the 10 
   greatest filenames: `flashair-util -S name --n-files 10 -k '.+08\.JPG'`
 
@@ -160,7 +174,7 @@ IMG_0617.JPG  2016-01-17  00:15:24  5.55MB
 (7 files, 36.54 MB total)
 ```
 
-List JPEGs that match a certain filename pattern:
+List JPEGs that match a certain filename regex pattern:
 
 ```
 $ flashair-util -l -k 'IMG_058.+' --only-jpg
@@ -247,7 +261,10 @@ Set the WiFi mode *on boot* instead of immediately with the *-W* flag:
 ## Using the `tfatool` Python library
 ### Example 1: using FlashAir's command.cgi
 
+Listing, counting files on FlashAir:
+
 ```python
+import arrow  # 
 from tfatool import command
 
 # get files in a FlashAir directory as a list of namedtuples
@@ -257,14 +274,24 @@ special_files = command.list_files(DIR="/DCIM/my_special_folder")
 
 # get an integer count of files in a certain dir
 n_flashair_files = command.count_files(DIR="/DCIM")  # count in specific directory
+```
 
+Files listed by FlashAir are converted to a `namedtuple` with
+attributes `filename, directory, path, size, attribute, datetime`,
+where `size` is in bytes, `attribute` shows file permissions and so on,
+and `datetime` is a `datetime` object from the `arrow` library.
+Filters can inspect any of these tuple parameters.
 
+```
 # file list fn takes optional filters
 # here we cull any RAW files (.raw or .cr2) and files of a certain name
+# we can also filter for datetime, since file timestamps are converted
+# to arrow datetime objects
 # you can combine any number of filters
+some_date = arrow.get("1987-04-02 11:33:03")  # arrow datetimes supported
+filter_date = lambda f: f.datetime > some_date  # after my birthday
 filter_raw = lambda f: not f.filename.lower().endswith(".raw", ".cr2")
 filter_name = lambda f: f.filename.lower()startswith("IMG_08")
-filter_date = lambda f: f.date > 33002  # look at FlashAir docs for date encoding
 certain_files = command.list_files(filter_raw, filter_name, filter_date)
 
 for f in certain_files:
@@ -273,39 +300,67 @@ for f in certain_files:
 
 ### Example 2: using file synchronization functions
 
+The `sync` module contains functions for syncing files UP to FlashAir
+and DOWN from FlashAir to your local filesystem.
+
 ```python
 from tfatool import sync
 
 # Sync files as a one-off action
 # here we sync the most recent files sorted by (file.date, file.time)
-sync.by_time(count=10)  # places most recent files in CWD by default
-sync.by_time(count=15, dest="/home/tad/Pictures")
+sync.up_by_time(count=10)  # uploads 10 most recent files (in CWD by default)
+sync.down_by_time(count=15, local_dir="/home/tad/Pictures")
 
 # Sync specific files selected from files list
 from tfatool import command
 all_files = command.list_files()
 only_camille_photos = [f for f in all_files if "camille" in f.filename.lower()]
-sync.by_files(only_camille_photos, dest="/home/tad/Pictures/camille")
+sync.down_by_files(only_camille_photos, local_dir="/home/tad/Pictures/camille")
 ```
 
 ### Example 3: watching for newly created files
 
-The `tfatool.sync.by_new_arrivals()` function watches your FlashAir device
-for new files. When new files are found, they're copied to the local directory
-specified by the `dest` argument (current working directory by default).
+The `tfatool.sync.Monitor` object watches your FlashAir device
+and/or your local filesystem
+for new files in a separate thread. `Monitor` watches in one of
+three ways:
+
+1. watches for new files in a remote FlashAir directory and
+   downloads them as they appear to a local directory
+2. watches for new files in a local directory and uploads them
+   as they appear to a remote FlashAir directory
+3. watches for new files in *both* local and remote locations
+   and updates each accordingly
+
+Uploading new files as they appear:
 
 ```python
 from tfatool import sync
 
 # Monitor FlashAir for new files, sync them with a local directory
 # This will run forever
-sync.by_new_arrivals(dest="/home/tad/Pictures/new")
+monitor = sync.Monitor(local_dir="/home/tad/Pictures/new",
+                       remote_dir="/DCIM")
+monitor.sync_up()  # only upload new local files as they appear
+time.sleep(5)
+monitor.stop()  # prompt thread to stop
+monitor.join()  # wait for thread to stop
+```
 
+Downloading new files as they appaer:
+
+```python
 # Sync only .raw image files that are smaller than 3 MB
-# This will run forever
 is_raw = lambda f: f.filename.lower().endswith(".raw", ".cr2")
 is_small = lambda f: f.size < 3e6
-sync.by_new_arrivals(is_raw, is_small, dest="/home/tad/Pictures/raw")
+monitor.filters = (is_raw, is_small)
+monitor.sync_down()  # download thread starts
+```
+
+Bidirectional sync:
+
+```python
+monitor.sync_both()  # thread starts for sync in both directions
 ```
 
 ### Example 4: sending config changes via a POST to *config.cgi*
@@ -334,4 +389,18 @@ else:
 ```
 
 # Installation
-Requires `requests`, `tqdm`, and `python3.4+`. Install with `pip3 install tfatool`.
+Requires `requests`, `tqdm`, `arrow`, and `python3.4+`. Install
+with your system's Python3:
+
+```
+pip3 install tfatool
+```
+
+Or into a virtualenv:
+
+```
+virtualenv -p python3.5 env/
+source env/bin/activate
+pip install tfatool
+```
+

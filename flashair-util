@@ -132,8 +132,6 @@ def iter_sync_once_methods(args):
 
 def sync_once(methods, filters, args):
     for by_method in methods:
-        logger.info("Synchronizing {} latest file(s) with {}".format(
-            args.n_files, by_method.__name__))
         try:
             by_method(*filters, remote_dir=args.remote_dir,
                       local_dir=args.local_dir, count=args.n_files)
