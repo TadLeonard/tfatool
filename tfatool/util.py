@@ -1,7 +1,7 @@
 import arrow
 
 
-def parse_time(datetime_input):
+def parse_datetime(datetime_input):
     """The arrow library is sadly not good enough to parse
     certain date strings. It even gives unexpected results for partial
     date strings such as '2015-01' or just '2015', which I think
@@ -18,14 +18,20 @@ def _split_datetime(datetime_input):
     if len(dt_input) == 1:
         dt_input.append("")
     date_input, time_input = dt_input
+    if ":" in date_input:
+        date_input, time_input = time_input, date_input
+    if not date_input:
+        date_input = arrow.now().format("YYYY-MM-DD")
+        sep = "-"
+    if not time_input:
+        time_input = "00:00:00"
+
     if "/" in date_input:
         sep = "/"
     elif "-" in date_input:
         sep = "-"
     elif "." in date_input:
         sep = "."
-    elif ":" in date_input:
-        date_input, time_input = time_input, date_input
     else:
         raise ValueError("Date '{}' can't be understood".format(date_input))
     if time_input and ":" not in time_input:

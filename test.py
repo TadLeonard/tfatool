@@ -99,7 +99,7 @@ def test_upload_post_url():
 
 
 def test_datetime_from_month_year():
-    dt = util.parse_time("11-2015")
+    dt = util.parse_datetime("11-2015")
     assert dt.year == 2015
     assert dt.month == 11
     assert dt.day == 1
@@ -109,7 +109,7 @@ def test_datetime_from_month_year():
 
 
 def test_datetime_from_year_month():
-    dt = util.parse_time("2015-11")
+    dt = util.parse_datetime("2015-11")
     assert dt.year == 2015
     assert dt.month == 11
     assert dt.day == 1
@@ -119,7 +119,7 @@ def test_datetime_from_year_month():
 
 
 def test_datetime_from_year_month_hour_min():
-    dt = util.parse_time("2015-11 4:11")
+    dt = util.parse_datetime("2015-11 4:11")
     assert dt.year == 2015
     assert dt.month == 11
     assert dt.day == 1
@@ -129,7 +129,7 @@ def test_datetime_from_year_month_hour_min():
 
 
 def test_datetime_from_month_year_hour_min_sec():
-    dt = util.parse_time("11-2015 4:11:12")
+    dt = util.parse_datetime("11-2015 4:11:12")
     assert dt.year == 2015
     assert dt.month == 11
     assert dt.day == 1
@@ -137,6 +137,32 @@ def test_datetime_from_month_year_hour_min_sec():
     assert dt.minute == 11
     assert dt.second == 12
 
-   
-   
-    
+
+def test_datetime_from_time_first():
+    dt = util.parse_datetime("11:22 2015-04-02")
+    assert dt.year == 2015
+    assert dt.month == 4
+    assert dt.day == 2
+    assert dt.hour == 11
+    assert dt.minute == 22
+
+
+def test_datetime_time_only():
+    dt = util.parse_datetime("11:22")
+    now = arrow.now()
+    assert dt.year == now.year
+    assert dt.month == now.month
+    assert dt.day == now.day
+    assert dt.hour == 11
+    assert dt.minute == 22
+    assert dt.second == 0 
+
+
+def test_datetime_date_only():
+    dt = util.parse_datetime("2015-04-1")
+    assert dt.second == 0
+    assert dt.minute == 0
+    assert dt.year == 2015
+    assert dt.month == 4
+    assert dt.day == 1
+
