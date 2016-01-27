@@ -1,10 +1,12 @@
 import logging
 import arrow
 
+from pathlib import PosixPath
 from collections import namedtuple
 from . import cgi
-from .info import URL, DEFAULT_DIR
+from .info import URL, DEFAULT_REMOTE_DIR
 from .info import WifiMode, WifiModeOnBoot, ModeValue, Operation
+from .info import FileInfo, RawFileInfo
 
 
 logger = logging.getLogger(__name__)
@@ -13,13 +15,30 @@ logger = logging.getLogger(__name__)
 ##################
 # command.cgi API
 
-def list_files(*filters, remote_dir=DEFAULT_DIR, url=URL):
+
+def map_files(*filters, remote_dir=DEFAULT_REMOTE_DIR, url=URL):
+    files = list_files(*filters, remote_dir=remote_dir, url=url)
+    return {f.filename: f for f in files}
+
+
+def list_files(*filters, remote_dir=DEFAULT_REMOTE_DIR, url=URL):
     response = _get(Operation.list_files, url, DIR=remote_dir)
     files = _split_file_list(response.text)
     return (f for f in files if all(filt(f) for filt in filters))
 
 
-def count_files(remote_dir=DEFAULT_DIR, url=URL):
+def map_files_raw(*filters, remote_dir=DEFAULT_REMOTE_DIR, url=URL):
+    files = list_files_raw(*filters, remote_dir=remote_dir, url=url)
+    return {f.filename: f for f in files}
+
+
+def list_files_raw(*filters, remote_dir=DEFAULT_REMOTE_DIR, url=URL):
+    response = _get(Operation.list_files, url, DIR=remote_dir)
+    files = _split_file_list_raw(response.text)
+    return (f for f in files if all(filt(f) for filt in filters))
+
+
+def count_files(remote_dir=DEFAULT_REMOTE_DIR, url=URL):
     response = _get(Operation.count_files, url, DIR=remote_dir)
     return int(response.text)
 
@@ -66,10 +85,6 @@ def get_wifi_mode(url=URL) -> WifiMode:
 #####################
 # API implementation
 
-FileInfo = namedtuple(
-    "FileInfo", "directory filename size attribute datetime")
-
-
 def _split_file_list(text):
     lines = text.split("\r\n")
     for line in lines:
@@ -80,8 +95,19 @@ def _split_file_list(text):
             size, attr_val, date_val, time_val = remaining
             timeinfo = _decode_time(date_val, time_val)
             attribute = _decode_attribute(attr_val)
-            yield FileInfo(directory, filename,
+            path = str(PosixPath(directory, filename))
+            yield FileInfo(directory, filename, path,
                            size, attribute, timeinfo)
+
+
+def _split_file_list_raw(text):
+    lines = text.split("\r\n")
+    for line in lines:
+        groups = line.split(",")
+        if len(groups) == 6:
+            directory, filename, size, *_ = groups
+            path = str(PosixPath(directory, filename))
+            yield RawFileInfo(directory, filename, path, int(size))
 
 
 def _decode_time(date_val: int, time_val: int):
@@ -89,9 +115,16 @@ def _decode_time(date_val: int, time_val: int):
     month = (date_val & (0b1111 << 5)) >> 5
     day = date_val & 0b11111
     hour = time_val >> 11
-    minute = (time_val & (0b111111 << 6)) >> 6
+    minute = ((time_val >> 5) & 0b111111)
     second = (time_val & 0b11111) * 2
-    return arrow.get(year, month, day, hour, minute, second)
+    try:
+        decoded = arrow.get(year, month, day, hour, minute, second)
+    except ValueError:
+        year = max(1980, year)  # FAT32 doesn't go higher
+        month = min(max(1, month), 12)
+        day = max(1, day)
+        decoded = arrow.get(year, month, day, hour, minute, second)
+    return decoded
 
 
 AttrInfo = namedtuple(

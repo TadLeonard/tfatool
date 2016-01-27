@@ -1,9 +1,18 @@
 from enum import IntEnum, Enum
+from collections import namedtuple
 
 
 URL = "http://flashair/"
-DEFAULT_DIR = "/DCIM/100__TSB"
+DEFAULT_REMOTE_DIR = "/DCIM/100__TSB"
 DEFAULT_MASTERCODE = "BEEFBEEFBEEF"
+
+
+FileInfo = namedtuple(
+    "FileInfo", "directory filename path size attribute datetime")
+SimpleFileInfo = namedtuple(
+    "SimpleFileInfo", "directory filename path size datetime")
+RawFileInfo = namedtuple(
+    "RawFileInfo", "directory filename path size")
 
 
 class Operation(IntEnum):
@@ -21,6 +30,7 @@ class Operation(IntEnum):
 
 
 class Config(str, Enum):
+    """Config params for config.cgi"""
     wifi_timeout = "APPAUTOTIME"  # set wifi timeout
     app_info = "APPINFO"  # set "application unique info"
     wifi_mode = "APPMODE"  # set WLAN mode (see Mode and ModeOnBoot)
@@ -57,5 +67,23 @@ class DriveMode(ModeValue):
     enable = 1  # enabled, only read is allowed
     # NOTE: for uploads to work, you also need UPLOAD=1 in the config file
     upload = 2  # enabled, read AND write allowed
+
+
+class Upload(str, Enum):
+    """Parameter names for upload.cgi"""
+    delete = "DEL"
+    directory = "UPDIR"
+    creation_time = "FTIME"
+    write_protect = "WRITEPROTECT"
+
+
+class WriteProtectMode(str, Enum):
+    on = "ON"
+    off = "OFF"
+
+
+class ResponseCode(str, Enum):
+    success = "SUCCESS"
+    error = "ERROR"
 
 

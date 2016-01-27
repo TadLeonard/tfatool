@@ -1,7 +1,11 @@
+import os
+import arrow
+
 from urllib import parse
 from tfatool.info import Config, WifiMode, DriveMode
+from tfatool.info import Upload, WriteProtectMode
 from tfatool.config import config
-from tfatool import command
+from tfatool import command, upload
 
 
 def test_config_construction():
@@ -61,4 +65,35 @@ def test_command_cgi_url():
     print(req.url)
     url, _ = parse.splitquery(req.url)
     assert url == "http://192.168.0.1/command.cgi"
+
+
+def test_datetime_encode_decode():
+    ctime = os.stat("README.md").st_ctime
+    dtime = arrow.get(ctime)
+
+    # encode to FAT32 time
+    encoded = upload._encode_time(ctime)
+
+    # decode to arrow datetime
+    decoded = command._decode_time(encoded >> 16, encoded & 0xFFFF)
+
+    # accurate down to the second
+    for attr in "year month day hour minute".split():
+        assert getattr(dtime, attr) == getattr(decoded, attr)
+
+    # seconds are encoded so that they're +- 1
+    assert abs(decoded.second - (dtime.second + dtime.microsecond / 10**6)) < 2
+
+
+def test_datetime_str_encode():
+    datetime_val = 0x00340153  # a 32-bit encoded date
+    as_string = upload._str_encode_time(datetime_val)
+    assert as_string == "0x00340153"
+ 
+
+def test_upload_post_url():
+    docs_url = "http://flashair/upload.cgi?WRITEPROTECT=ON"  # from docs
+    wp = upload.prep_post(**{Upload.write_protect:
+                             WriteProtectMode.on})
+    assert docs_url == wp.url
 
