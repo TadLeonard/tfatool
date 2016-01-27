@@ -6,12 +6,24 @@ from setuptools import setup
 version = tfatool._version.__version__
 url = "https://github.com/TadLeonard/tfatool"
 download = "{}/archive/{}.tar.gz".format(url, version)
+
+
+# NOTE: pandoc doesn't convert Markdown's in-word-emphasis,
+# so I have to upload a different hand-tuned README to PyPI
+#try:
+#    import pypandoc
+#    long_description = pypandoc.convert('README.md', 'rst')
+#except ImportError:
+#    long_description = ("Tools for syncing files with the Toshiba FlashAir "
+#                        "wireless SD card")
+
 try:
-    import pypandoc
-    long_description = pypandoc.convert('README.md', 'rst')
-except ImportError:
-    long_description = ("Tools for syncing files with the Toshiba FlashAir "
+    long_description = open("README.rst").read()
+except:
+    long_description = ("Tools for synchronizing files to/from "
+                        "and configuring the Toshiba FlashAir "
                         "wireless SD card")
+
 classifiers = [
   'Development Status :: 5 - Production/Stable',
   'Environment :: Console',
