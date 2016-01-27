@@ -89,6 +89,8 @@ def up_down_by_arrival(*filters, local_dir=".",
             up_by_files(new_arrivals, remote_dir)
             local = new_local
             _notify_sync_ready(len(local), local_dir, remote_dir)
+        else:
+            yield "up", set()
         new_remote = set(command.list_files(*filters, remote_dir=remote_dir))
         new_arrivals = _whats_new(new_remote, remote, new_names)
         if new_arrivals:
@@ -99,6 +101,8 @@ def up_down_by_arrival(*filters, local_dir=".",
             down_by_files(new_arrivals, local_dir)
             remote = new_remote
             _notify_sync_ready(len(remote), remote_dir, local_dir)
+        else:
+            yield "down", set()
 
 
 def up_by_arrival(*filters, local_dir=".", remote_dir=DEFAULT_REMOTE_DIR):
@@ -118,6 +122,8 @@ def up_by_arrival(*filters, local_dir=".", remote_dir=DEFAULT_REMOTE_DIR):
             up_by_files(new_arrivals, remote_dir)
             old_files = new_files
             _notify_sync_ready(len(old_files), local_dir, remote_dir)
+        else:
+            yield set()
 
 
 def down_by_arrival(*filters, local_dir=".", remote_dir=DEFAULT_REMOTE_DIR):
@@ -139,6 +145,8 @@ def down_by_arrival(*filters, local_dir=".", remote_dir=DEFAULT_REMOTE_DIR):
             down_by_files(new_arrivals, local_dir)
             old_files = new_files
             _notify_sync_ready(len(old_files), remote_dir, local_dir)
+        else:
+            yield set()
 
 
 def _whats_new(new, old, processed):
