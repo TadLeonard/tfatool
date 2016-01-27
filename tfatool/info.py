@@ -1,9 +1,18 @@
 from enum import IntEnum, Enum
+from collections import namedtuple
 
 
 URL = "http://flashair/"
-DEFAULT_DIR = "/DCIM/100__TSB"
+DEFAULT_REMOTE_DIR = "/DCIM/100__TSB"
 DEFAULT_MASTERCODE = "BEEFBEEFBEEF"
+
+
+FileInfo = namedtuple(
+    "FileInfo", "directory filename path size attribute datetime")
+SimpleFileInfo = namedtuple(
+    "SimpleFileInfo", "directory filename path size datetime")
+RawFileInfo = namedtuple(
+    "RawFileInfo", "directory filename path size")
 
 
 class Operation(IntEnum):
