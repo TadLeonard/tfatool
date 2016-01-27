@@ -7,6 +7,7 @@ import time
 import arrow
 
 from argparse import ArgumentParser
+from functools import partial
 from pathlib import Path
 
 from requests import RequestException
@@ -34,7 +35,9 @@ actions.add_argument("-S", "--sync-once", default=False,
 
 setup = parser.add_argument_group("Setup")
 setup.add_argument("-y", "--sync-direction", choices=["up", "down", "both"],
-                   help="'up' to upload, 'down' to download")
+                   help="'up' to upload, 'down' to download, 'both' for both "
+                        "(default: down)",
+                   default="down")
 setup.add_argument("-r", "--remote-dir", default=info.DEFAULT_REMOTE_DIR,
                    help="FlashAir directory to work with (default: {})".format(
                         info.DEFAULT_REMOTE_DIR))
@@ -96,23 +99,13 @@ def run():
         parser.error("`--sync-once all` doesn't make sense with `--num-files N`")
 
     if args.sync_forever or args.sync_once:
-        logger.info("Syncing files from {} to {}".format(
-            args.remote_dir, args.local_dir))
         local_path = Path(args.local_dir)
         if not local_path.is_dir():
             logger.info("Creating directory '{}'".format(args.local_dir))
             local_path.mkdir()
-        if args.sync_once == "name":
-            sync_once(sync.by_name, filters, args)
-        elif args.sync_once == "time":
-            sync_once(sync.by_time, filters, args)
-        elif args.sync_once == "all":
-            logger.info("Retreiving ALL matched files")
-            files = command.list_files(*filters, remote_dir=args.remote_dir)
-            try:
-                sync.by_files(files, dest=args.local_dir)
-            except KeyboardInterrupt:
-                pass
+        if args.sync_once:
+            methods = iter_sync_once_methods(args)
+            sync_once(methods, filters, args)
         if args.sync_forever:
             try:
                 sync_loop(filters, args)
@@ -120,31 +113,67 @@ def run():
                 pass
 
 
-def sync_once(by_method, filters, args):
-    logger.info("Retrieving {} latest file(s) by {}".format(
-        args.n_files, args.sync_once))
+def iter_sync_once_methods(args):
+    if args.sync_direction in ("up", "both"):
+        if args.sync_once == "name":
+            yield sync.up_by_name
+        elif args.sync_once == "time":
+            yield sync.up_by_time
+        elif args.sync_once == "all":
+            yield sync.up_by_all
+    if args.sync_direction in ("down", "both"):
+        if args.sync_once == "name":
+            yield sync.down_by_name
+        elif args.sync_once == "time":
+            yield sync.down_by_time
+        elif args.sync_once == "all":
+            yield sync.down_by_all
+
+
+def sync_once(methods, filters, args):
+    for by_method in methods:
+        logger.info("Synchronizing {} latest file(s) with {}".format(
+            args.n_files, by_method.__name__))
+        try:
+            by_method(*filters, remote_dir=args.remote_dir,
+                      local_dir=args.local_dir, count=args.n_files)
+        except KeyboardInterrupt:
+            break
+
+
+def sync_loop(filters, args):
     try:
-        by_method(*filters, remote_dir=args.remote_dir,
-                  dest=args.local_dir, count=args.n_files)
+        _sync_loop(filters, args)
     except KeyboardInterrupt:
         pass
 
 
-def sync_loop(filters, args):
+def _sync_loop(filters, args):
+    monitor = sync.Monitor(*filters, local_dir=args.local_dir,
+                           remote_dir=args.remote_dir)
+    if args.sync_direction == "both":
+        run_method = monitor.sync_both
+    elif args.sync_direction == "up":
+        run_method = monitor.sync_up
+    else:
+        run_method = monitor.sync_down
+
     while True:
         logger.info("Waiting for newly arrived files...")
         try:
-            sync.by_new_arrivals(
-                *filters, remote_dir=args.remote_dir, dest=args.local_dir)
+            run_method()
+            monitor.join()
         except KeyboardInterrupt:
             break
-        except RequestException as e:
-            logger.error("Trying again after request failure: {}".format(
-                         str(e)))
-            time.sleep(3)
+        logger.warning("Sync loop interrupted -- restarting in 5s")
+        monitor.stop()
+        monitor.join()
+        time.sleep(5)
+    monitor.stop()
+    monitor.join()
 
 
-def print_file_list(filters, args):
+def print_file_list(filters, args, count_only=False):
     files = command.list_files(*filters, remote_dir=args.remote_dir)
     files = sorted(files, key=lambda f: f.datetime)
     files = list(files)
@@ -156,6 +185,8 @@ def print_file_list(filters, args):
 
     for f in files:
         nbytes += f.size
+        if count_only:
+            continue
         print("{}  {}  {:0.2f}MB".format(
               f.filename, f.datetime.format("YYYY-MM-DD  HH:mm:ss"),
               f.size / 10**6))
@@ -172,12 +203,7 @@ def print_file_list(filters, args):
           len(files), val, units))
     
 
-def print_file_count(filters, args):
-    files = command.list_files(*filters, remote_dir=args.remote_dir)
-    n_files = len(list(files))
-    title = "Number of files in {}".format(args.remote_dir)
-    print("\n{}\n{}".format(title, "=" * len(title)))
-    print(n_files)
+print_file_count = partial(print_file_list, count_only=True)
 
 
 if __name__ == "__main__":
