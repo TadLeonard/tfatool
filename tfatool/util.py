@@ -25,8 +25,6 @@ def _split_datetime(datetime_input):
         sep = "-"
     if not time_input:
         time_input = "00:00:00"
-    if len(date_input) == 4:
-        date_input = "{}-01-01".format(date_input)
 
     if "/" in date_input:
         sep = "/"
@@ -34,6 +32,9 @@ def _split_datetime(datetime_input):
         sep = "-"
     elif "." in date_input:
         sep = "."
+    elif len(date_input) == 4:
+        date_input = "{}-01-01".format(date_input)  # assume YYYY
+        sep = "-"
     else:
         raise ValueError("Date '{}' can't be understood".format(date_input))
     if time_input and ":" not in time_input:
@@ -50,7 +51,7 @@ def _parse_date(date_els):
         elif _is_year(b):
             date_vals = b, a, 1  # 1st of month assumed
         else:
-            date_vals = arrow.now().year, a, b  # assumed M/D
+            date_vals = arrow.now().year, a, b  # assumed M/D of this year
     elif len(date_els) == 3:
         # assumed to be year-month-day or month-day-year
         a, b, c = date_els
@@ -58,6 +59,8 @@ def _parse_date(date_els):
             date_vals = a, b, c
         elif _is_year(c):
             date_vals = c, a, b
+        else:
+            raise ValueError("Date '{}' can't be understood".format(date_els))
     else:
         raise ValueError("Date '{}' can't be understood".format(date_els))
     return map(int, date_vals)
