@@ -1,4 +1,7 @@
+<img align="right" src="_docs/flashair.jpg">
+
 # tfatool: *T*oshiba *F*lash*A*ir Tool
+
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat-blue)](http://badges.mit-license.org)
 [![PyPI version](https://badge.fury.io/py/tfatool.svg)](https://badge.fury.io/py/tfatool)
 
@@ -12,7 +15,7 @@ from the command line.
 
   Action                                                      | Command                                         
   ----------------------------------------------------------- | ------------------------------------------------
-  Watch FlashAir for new JPEGs, download to local dir forever | `flashair-util -s -d /home/tad/Photos --only-jpeg`
+  Watch FlashAir for new JPEGs, download to local dir         | `flashair-util -s -d /home/tad/Photos --only-jpeg`
   Watch working dir for new files, upload them to FlashAir    | `flashair-util -s -y up`
   Watch sync new files in a local AND remote direcotry        | `flashair-util -s -y both`
   Sync the 10 most recent files with a local dir, then quit   | `flashair-util -S time -d images/new/`  
@@ -20,8 +23,6 @@ from the command line.
   Sync (up and down) 5 most recent files of a certain name    | `flashair-util -S time -k 'IMG-08.+\.raw' -y both`      
   Change FlashAir network SSID                                | `flashair-config --wifi-ssid myflashairnetwork`
   Show FlashAir network password & firmware version           | `flashair-config --show-wifi-key --show-fw-version`
-
-<img align="right" src="_docs/flashair.jpg">
 
 ### Package contents at a glance
 
@@ -107,10 +108,9 @@ Some time later, a new photo appears in the default remote directory.
 
 File synchronizing can be done in one of three ways:
 
-1. Download only (default or with `-y down`/`--sync-direction down`)
-2. Upload (to FlashAir) only (`-y up`/`--sync-direction up`)
-3. Both (`-y both`/`--sync-direction both`)
-
+1. Download only (default or chosen with `-y down/--sync-direction down`)
+2. Upload only (`-y up/--sync-direction up`)
+3. Bidirectional (`-y both/--sync-direction both`)
 
 ### Example 2: sync subset of files on FlashAir *just once*
 
@@ -389,8 +389,9 @@ else:
 ```
 
 # Installation
-Requires `requests`, `tqdm`, `arrow`, and `python3.4+`. Install
-with your system's Python3:
+Requires `requests`, `tqdm`, `arrow`, and `python3.4+`.
+
+Install with your system's Python3:
 
 ```
 pip3 install tfatool
