@@ -5,7 +5,6 @@ from tfatool import command, upload
 
 
 fns = [
-    lambda: list(command.list_files())[:5],
     command.count_files,
     command.memory_changed,
     command.get_ssid,
@@ -28,6 +27,15 @@ def test_upload_delete():
     assert any(f.filename == "README.md" for f in files)
     upload.delete_file("/DCIM/README.md")
     assert not any(f.filename == "README.md" for f in files)
+
+
+def test_list_files():
+    files = command.list_files()
+    raw_files = command.list_files()
+    same_attrs = "filename directory size".split()
+    for n, (f, r) in enumerate(zip(files, raw_files)):
+        assert all(getattr(f, n) == getattr(r, n) for n in same_attrs)
+    assert n > 3, "too few files to test"
 
 
 def test_smoke():
