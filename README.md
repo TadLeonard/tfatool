@@ -282,7 +282,7 @@ where `size` is in bytes, `attribute` shows file permissions and so on,
 and `datetime` is a `datetime` object from the `arrow` library.
 Filters can inspect any of these tuple parameters.
 
-```
+```python
 # file list fn takes optional filters
 # here we cull any RAW files (.raw or .cr2) and files of a certain name
 # we can also filter for datetime, since file timestamps are converted
