@@ -86,7 +86,7 @@ def test_sync_up_by_name():
     _teardown_test_files(names)
 
 
-def test_sync_up_by_arrival():
+def test_sync_up_by_arrival_threaded():
     names, name_filter = _prepare_test_files() 
     _teardown_test_files(names)
 
@@ -100,6 +100,26 @@ def test_sync_up_by_arrival():
 
     for f in files:
         upload.delete_file(f.path) 
+    _teardown_test_files(names)
+
+    assert len(files) == len(names)
+
+def test_sync_up_by_arrival():
+    names, name_filter = _prepare_test_files()
+    _teardown_test_files(names)
+
+    to_upload = sync.up_by_arrival(name_filter, remote_dir="/DCIM")
+    new = next(to_upload)  # nothing new yet
+    assert not new  # empty set
+    _prepare_test_files()  # files get `touch`ed
+    new = next(to_upload)  # should be something new to upload
+    assert len(new) == len(names)
+    new = next(to_upload)  # triggers upload, then yields an empty set again
+    assert not new
+    files = list(command.list_files(name_filter, remote_dir="/DCIM"))
+
+    for f in files:
+        upload.delete_file(f.path)
     _teardown_test_files(names)
 
     assert len(files) == len(names)
