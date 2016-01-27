@@ -37,8 +37,8 @@ def set_upload_dir(remote_dir: str, url=URL):
 
 
 def set_creation_time(local_path: str, url=URL):
-    ctime = os.stat(local_path).st_ctime
-    fat_time = _encode_time(ctime)
+    mtime = os.stat(local_path).st_mtime
+    fat_time = _encode_time(mtime)
     encoded_time = _str_encode_time(fat_time)
     return get(url=url, **{Upload.creation_time: encoded_time})
 
@@ -76,9 +76,9 @@ def _str_encode_time(encoded_time: int):
     return "{0:#0{1}x}".format(encoded_time, 10)
 
 
-def _encode_time(ctime: float):
-    """Encode a ctime float as a 32-bit FAT time"""
-    dt = arrow.get(ctime)
+def _encode_time(mtime: float):
+    """Encode a mtime float as a 32-bit FAT time"""
+    dt = arrow.get(mtime)
     date_val = ((dt.year - 1980) << 9) | (dt.month << 5) | dt.day
     secs = dt.second + dt.microsecond / 10**6
     time_val = (dt.hour << 11) | (dt.minute << 5) | math.floor(secs / 2)
