@@ -26,7 +26,7 @@ def set_write_protect(mode: WriteProtectMode, url=URL):
 
 
 def set_upload_dir(remote_dir: str, url=URL):
-    up = get(url=url, **{Upload.directory: remote_dir})
+    response = get(url=url, **{Upload.directory: remote_dir})
     if response.text != ResponseCode.success:
         raise UploadError("Failed to set upload directory", response)
     return response
@@ -39,7 +39,7 @@ def set_creation_time(local_path: str, url=URL):
     response = get(url=url, **{Upload.creation_time: encoded_time})
     if response.text != ResponseCode.success:
         raise UploadError("Failed to set creation time", response)
-    return repsonse
+    return response
 
 
 def post_file(local_path: str, url=URL):
