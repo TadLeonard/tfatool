@@ -18,7 +18,7 @@ download = "{}/archive/{}.tar.gz".format(url, version)
 #    long_description = ("Tools for syncing files with the Toshiba FlashAir "
 #                        "wireless SD card")
 
-long_description("See {} for documentation".format(url))
+long_description= "See {} for documentation".format(url)
 description = ("Tools for synchronizing files to/from "
                "and configuring the Toshiba FlashAir "
                "wireless SD card")
