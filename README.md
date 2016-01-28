@@ -358,58 +358,79 @@ sync.down_by_files(only_camille_photos, local_dir="/home/tad/Pictures/camille")
 ### Example 3A: watching for newly created files
 
 The `tfatool.sync` module contains three generator functions for
-monitoring your FlashAir device and/or your local filesystem for
-new files. When new files are found, they're uploaded and/or downloaded
-to and/or from FlashAir.
+monitoring your FlashAir device and your local filesystem for
+newly created fiiles. File monitoring can work in one of three ways:
 
+1. watch for new files in a remote FlashAir directory and
+   download them as they appear to a local directory
+2. watch for new files in a local directory and upload them
+   as they appear to a remote FlashAir directory
+3. watch for new files in *both* local and remote locations
+   and update each accordingly
+
+Download remote files as they appear with `down_by_arrival`:
+
+```python
+import time
+from tfatool import sync
+
+# generates tuples like ("down", {fileinfo, fileinfo...})
+to_download = sync.down_by_arrival()
+
+# consuming the generator downloads available files
+for direction, pending_download in to_download:
+    if not pending_download:
+        time.sleep(0.5)  # nothing to download
+```
+
+Use `up_by_arrival` to upload local files as they appear.
+Note that with any of these functions you can pass
+specific local and remote directories.
+
+```python
+# generates tuples like ("up", {fileinfo, fileinfo...})
+to_upload = sync.up_by_arrival(local_dir="/special/place",
+                               remote_dir="/DCIM")
 ...
+```
+
+Finally, use `up_down_by_arrival` to perform a *bidirectional*
+sync of the local and remote directories. Note that file filters
+can be applied to any of these generators.
+
+```python
+filter_jpg = lambda f: f.filename.endswith(".jpg")
+# generates tuples like ("up", {fileinfo,...}) for pending uploads
+# and ("down", {fileinfo...}) for pending downloads
+to_upload_or_download = sync.up_down_by_arrival(filter_jpg)
+```
 
 ### Example 3B: watching for newly created files *in a separate thread*
 
-The `tfatool.sync.Monitor` object watches your FlashAir device
-and/or your local filesystem
-for new files in a separate thread. `Monitor` watches in one of
-three ways:
+The `tfatool.sync.Monitor` object watches for new files in your
+FlashAir device and/or your local filesystem with a separate thread.
 
-1. watches for new files in a remote FlashAir directory and
-   downloads them as they appear to a local directory
-2. watches for new files in a local directory and uploads them
-   as they appear to a remote FlashAir directory
-3. watches for new files in *both* local and remote locations
-   and updates each accordingly
-
-Uploading new files as they appear:
+Uploading new files in the background:
 
 ```python
 from tfatool import sync
 
-# Monitor FlashAir for new files, sync them with a local directory
-# This will run forever
 monitor = sync.Monitor(local_dir="/home/tad/Pictures/new",
                        remote_dir="/DCIM")
-monitor.sync_up()  # only upload new local files as they appear
-time.sleep(5)
+monitor.sync_up()  # start upload thread
+# ... do something else
 monitor.stop()  # prompt thread to stop
 monitor.join()  # wait for thread to stop
 ```
 
-Downloading new files as they appear:
-
-```python
-# Sync only .raw image files that are smaller than 3 MB
-is_raw = lambda f: f.filename.lower().endswith(".raw", ".cr2")
-is_small = lambda f: f.size < 3e6
-monitor.filters = (is_raw, is_small)
-monitor.sync_down()  # download thread starts
-```
-
-Bidirectional sync:
-
-```python
-monitor.sync_both()  # thread starts for sync in both directions
-```
+Downloads work the same way, but with the `Monitor.sync_down` method.
+Sync bidirectionally with `Monitor.sync_both`.
 
 ### Example 4: sending config changes via a POST to *config.cgi*
+
+The `tfatool.config` module is an abstraction of FlashAir's `config.cgi`.
+To change config parameters, construct a dictionary of parameter
+names (`tfatool.info.Config` Enum types) and values.
 
 ```python
 from tfatool.config import post, config
@@ -421,20 +442,21 @@ params = {
     Config.wifi_ssid: "SUPER FUN PHOTO ZONE",
     Config.timezone: -11,  # somewhere in the USA, for example
 }
+```
 
-# This will raise an assertion error if any parameters are invalid
-# or out of range (for example if the WiFi timeout is < 60 seconds)
+Finally, prep the parameters for URL construction and send the request.
+The `tfatool.config.config` function will raise `AssertionError`
+if any value is out of bounds (e.g. if the WiFi timeout is < 60 s).
+These prepped parameters can then be sent to FlashAir via an
+HTTP POST using `tfatool.config.post`.
+
+```python
 prepped_params = config(params)
-
-# Prompt reconfiguration of the device via an HTTP POST to config.cgi
 response = post(prepped_params)
-if response.status_code == 200:
-    print("FlashAir reconfiguration successful")
-else:
-    print("Error: {}".format(response.status_code))
 ```
 
 # Installation
+
 Requires `requests`, `tqdm`, `arrow`, and `python3.4+`.
 
 Install with your system's Python3:
