@@ -44,8 +44,9 @@ class Monitor:
         files = method(*self._filters, local_dir=self._local_dir,
                        remote_dir=self._remote_dir)
         while self.running.is_set():
-            next(files)
-            time.sleep(0.2)
+            _, new = next(files)
+            if not new:
+                time.sleep(0.3)
         
     def sync_both(self):
         self._run(up_down_by_arrival)
@@ -118,18 +119,18 @@ def up_by_arrival(*filters, local_dir=".", remote_dir=DEFAULT_REMOTE_DIR):
             new_arrivals = new_files - old_files
             logger.info("Files to upload:\n{}".format(
                 "\n".join("  " + f.filename for f in new_arrivals)))
-            yield new_arrivals
+            yield "up", new_arrivals
             up_by_files(new_arrivals, remote_dir)
             old_files = new_files
             _notify_sync_ready(len(old_files), local_dir, remote_dir)
         else:
-            yield set()
+            yield "up", set()
 
 
 def down_by_arrival(*filters, local_dir=".", remote_dir=DEFAULT_REMOTE_DIR):
     """Monitors a remote FlashAir direcotry and generates sets of
     new files to be downloaded from FlashAir.
-    Sets to download are generated in a tuple like ("up", {...}).
+    Sets to download are generated in a tuple like ("down", {...}).
     The generator yields before each download actually takes place."""
     old_files = set(command.list_files(*filters, remote_dir=remote_dir))
     command.memory_changed()  # clear change status to start
@@ -141,12 +142,12 @@ def down_by_arrival(*filters, local_dir=".", remote_dir=DEFAULT_REMOTE_DIR):
             new_arrivals = new_files - old_files
             logger.info("Files to download:\n{}".format(
                 "\n".join("  " + f.filename for f in new_arrivals)))
-            yield new_arrivals
+            yield "down", new_arrivals
             down_by_files(new_arrivals, local_dir)
             old_files = new_files
             _notify_sync_ready(len(old_files), remote_dir, local_dir)
         else:
-            yield set()
+            yield "down", set()
 
 
 def _whats_new(new, old, processed):
