@@ -6,10 +6,10 @@
 [![PyPI version](https://badge.fury.io/py/tfatool.svg)](https://badge.fury.io/py/tfatool)
 
 This package provides easy access to
-Toshiba's FlashAir wireless SD card. As a library, this project provides
-a simple abstraction of the FlashAir API. As a set of scripts, `tfatool`
-gives the user a way of synchronizing files and configuring the device
-from the command line.
+Toshiba's FlashAir wireless SD card. As a library,
+a simple abstraction of the FlashAir API is provided. As a set of
+scripts, `tfatool` the user is given a way of synchronizing/mirroring
+files and configuring the device from the command line.
 
 ### Command line usage at a glance
 
@@ -19,23 +19,26 @@ from the command line.
   Monitor working dir for new files, upload to FlashAir       | `flashair-util -s -y up`
   Monitor a local and remote dir for new files, sync them     | `flashair-util -s -y both`
   Sync down the 10 most recent to a local dir, then quit      | `flashair-util -S time -d images/new/`
+  Sync up all files created in 1999 and afterwards            | `flashair-util -S all -t 1999`
   Sync down files created between Jan 23rd and Jan 26th       | `flashair-util -S all -t 1-23 -T 01/26`
   Sync files (up AND down) created this afternoon             | `flashair-util -S all -t 12:00 -T 16:00 -y  both`
+  Sync files up created after a very specific date/time       | `flashair-util -S all -t '2016-1-25 11:38:22'`
   Sync (up and down) 5 most recent files of a certain name    | `flashair-util -S time -k 'IMG-08.+\.raw' -y both`
+  List files on FlashAir with a certain creation time         | `flashair-util -l -t
   Change FlashAir network SSID                                | `flashair-config --wifi-ssid myflashairnetwork`
   Show FlashAir network password & firmware version           | `flashair-config --show-wifi-key --show-fw-version`
 
 ### Package contents at a glance
 
-* `flashair-util`: a command line tool for syncing, copying, listing files on FlashAir
+* `flashair-util`: a command line tool for mirroring and listing files on FlashAir
 * `flashair-config`: a command line tool for configuring FlashAir
 * `tfatool.command`: abstraction of FlashAir's [command.cgi](https://flashair-developers.com/en/documents/api/commandcgi/)
 * `tfatool.upload`: abstraction of FlashAir's [upload.cgi](https://flashair-developers.com/en/documents/api/uploadcgi/)
 * `tfatool.config`: abstraction of FlashAir's [config.cgi](https://flashair-developers.com/en/documents/api/configcgi/)
-* `tfatool.sync`: functions to facilitate copying/syncing files to and from FlashAir
+* `tfatool.sync`: functions for synchronizing local dirs with remote FlashAir dirs
 
 Read the [FlashAir documentation](https://flashair-developers.com/en/documents/api/)
-for more information about the API `tfatool` takes advantage of.
+for more information about the API `tfatool` uses.
 
 # Usage guide
 ## Using the `flashair-util` script
