@@ -155,28 +155,27 @@ def sync_loop(filters, args):
 
 
 def _sync_loop(filters, args):
-    monitor = sync.Monitor(*filters, local_dir=args.local_dir,
-                           remote_dir=args.remote_dir)
     if args.sync_direction == "both":
-        run_method = monitor.sync_both
+        run_method = sync.up_down_by_arrival
     elif args.sync_direction == "up":
-        run_method = monitor.sync_up
+        run_method = sync.up_by_arrival
     else:
-        run_method = monitor.sync_down
+        run_method = sync.down_by_arrival
 
     while True:
+        new_files = run_method(
+            *filters, local_dir=args.local_dir,
+            remote_dir=args.remote_dir)
         logger.info("Waiting for newly arrived files...")
         try:
-            run_method()
-            monitor.join()
+            while True:
+                _, new = next(new_files)
+                if not new:
+                    time.sleep(0.3)
         except KeyboardInterrupt:
             break
         logger.warning("Sync loop interrupted -- restarting in 5s")
-        monitor.stop()
-        monitor.join()
         time.sleep(5)
-    monitor.stop()
-    monitor.join()
 
 
 def print_file_list(filters, args, count_only=False):
