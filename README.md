@@ -24,7 +24,7 @@ files and configuring the device from the command line.
   Sync files (up AND down) created this afternoon             | `flashair-util -S all -t 12:00 -T 16:00 -y  both`
   Sync files up created after a very specific date/time       | `flashair-util -S all -t '2016-1-25 11:38:22'`
   Sync (up and down) 5 most recent files of a certain name    | `flashair-util -S time -k 'IMG-08.+\.raw' -y both`
-  List files on FlashAir with a certain creation time         | `flashair-util -l -t
+  List files on FlashAir with a certain creation time         | `flashair-util -l -t`
   Change FlashAir network SSID                                | `flashair-config --wifi-ssid myflashairnetwork`
   Show FlashAir network password & firmware version           | `flashair-config --show-wifi-key --show-fw-version`
 
