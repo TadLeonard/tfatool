@@ -184,47 +184,57 @@ Other simple `--sync-once` examples include:
 
 ### Example 3: listing certain files on FlashAir
 
-List ALL files:
+List all files created after 3:00 pm today:
 
 ```
-$ flashair-util -l
+$ flashair-util -l -t 15:00
+2016-01-29 16:26:55,287 | INFO | main | Filtering from [2016-01-29 15:00:00] to [end of time]
+
 Files in /DCIM/100__TSB
-=======================
-IMG_0894.JPG  2016-01-23  16:27:12  3.86MB
-IMG_0894.CR2  2016-01-23  16:27:14  17.73MB
-...
-IMG_0914.JPG  2016-01-23  18:19:58  1.07MB
-IMG_0914.CR2  2016-01-23  18:20:00  15.53MB
-(249 files, 2.84 GB total)
-```
 
-List only JPEGs created on the 16th and 17th of January:
+filename      date        time       MB  created
+------------  ----------  ------  -----  -----------
+IMG_1184.JPG  2016-01-29  15:03    5.13  7 hours ago
+IMG_1184.CR2  2016-01-29  15:03   18.8   7 hours ago
+IMG_1185.JPG  2016-01-29  15:03    5.82  7 hours ago
+IMG_1185.CR2  2016-01-29  15:03   19.6   7 hours ago
 
-```
-& flashair-util -l -t 2016-01-16 -T 2016-01-18 --only-jpg
-Files in /DCIM/100__TSB
-=======================
-IMG_0568.JPG  2016-01-16  18:09:50  4.96MB
-IMG_0580.JPG  2016-01-16  18:26:10  5.59MB
-IMG_0583.JPG  2016-01-16  18:27:02  5.16MB
-IMG_0584.JPG  2016-01-16  18:27:18  5.12MB
-IMG_0590.JPG  2016-01-16  20:01:52  5.51MB
-IMG_0597.JPG  2016-01-16  21:53:50  4.64MB
-IMG_0617.JPG  2016-01-17  00:15:24  5.55MB
-(7 files, 36.54 MB total)
+(4 files, 49.34 MB total)
 ```
 
 List JPEGs that match a certain filename regex pattern:
 
 ```
-$ flashair-util -l -k 'IMG_058.+' --only-jpg
+flashair-util -l -k 'IMG_058.+' --only-jpg
 
 Files in /DCIM/100__TSB
-=======================
-IMG_0580.JPG  2016-01-16  18:26:10  5.59MB
-IMG_0583.JPG  2016-01-16  18:27:02  5.16MB
-IMG_0584.JPG  2016-01-16  18:27:18  5.12MB
-(3 files, 15.87 MB total)
+
+filename      date        time      MB  created
+------------  ----------  ------  ----  -----------
+IMG_0583.JPG  2016-01-16  18:54   5.16  13 days ago
+IMG_0584.JPG  2016-01-16  18:54   5.12  13 days ago
+
+(2 files, 10.27 MB total)
+```
+
+List all JPEGs created in the years 2014, 2015 and 2016.
+
+```
+flashair-util -l -t 2012 -T 2017 -j
+2016-01-29 16:31:26,286 | INFO | main | Filtering from [2012-01-01 00:00:00] to [2017-01-01 00:00:00]
+
+Files in /DCIM/100__TSB
+
+filename       date        time      MB  created
+-------------  ----------  ------  ----  -----------
+FA000001.JPG   2013-08-29  09:00   0.13  2 years ago
+IMG_0583.JPG   2016-01-16  18:54   5.16  13 days ago
+IMG_0617.JPG   2016-01-17  00:31   5.55  12 days ago
+IMG_1066.JPG   2016-01-26  06:39   3.53  3 days ago
+...
+IMG_1185.JPG   2016-01-29  15:03   5.82  7 hours ago
+
+(61 files, 0.26 GB total)
 ```
 
 ## Using the `flashair-config` script
@@ -460,7 +470,7 @@ response = post(prepped_params)
 
 # Installation
 
-Requires `requests`, `tqdm`, `arrow`, and `python3.4+`.
+Requires `requests`, `tqdm`, `arrow`, `tabulate`, and `python3.4+`.
 
 Install with your system's Python3:
 
