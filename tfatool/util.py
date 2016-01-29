@@ -88,15 +88,12 @@ def _is_year(element):
 def fmt_file_rows(files):
     files = sorted(files, key=attrgetter("datetime"))
     for f in files:
-        fn = f.filename
-        dt = f.datetime.format("YYYY-MM-DD HH:mm")
-        size, units = get_size_units(f.size)
-        if units == "MB":
-            size = "{:> 3.02f}".format(size)
-        else:
-            size = "{:> 3.02f} ({})".format(size, units)
+        fname = f.filename
+        fdate = f.datetime.format("YYYY-MM-DD")
+        ftime = f.datetime.format("HH:mm") 
+        size = "{:> 3.02f}".format(f.size / 10**6)
         human = f.datetime.humanize()
-        yield fn, dt, size, human
+        yield fname, fdate, ftime, size, human
 
 
 def get_size_units(nbytes):

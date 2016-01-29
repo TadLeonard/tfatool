@@ -179,20 +179,22 @@ def _sync_loop(filters, args):
         time.sleep(5)
 
 
-_fields = ["filename", "datetime", "size (MB)", "human time"]
+_fields = ["filename", "date", "time", "MB", "created"]
 
 
 def print_file_list(filters, args, count_only=False):
     files = command.list_files(*filters, remote_dir=args.remote_dir)
     files = list(files)
-    print("\nFiles in {}".format(args.remote_dir))
     rows = util.fmt_file_rows(files)
-    table = tabulate.tabulate(rows, headers=_fields, tablefmt="fancy_grid")
+    table = tabulate.tabulate(rows, headers=_fields, tablefmt="simple")
+    print("\nFiles in {}".format(args.remote_dir))
     if not count_only:
+        print()
         print(table)
+        print()
     nbytes = sum(f.size for f in files)
     size, units = util.get_size_units(nbytes)
-    print("{:d} files, {:0.2f} {} total".format(
+    print("({:d} files, {:0.2f} {} total)".format(
           len(files), size, units))
     
 
