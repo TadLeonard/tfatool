@@ -4,6 +4,7 @@
 import logging
 import re
 import time
+import tabulate
 
 from argparse import ArgumentParser
 from functools import partial
@@ -178,34 +179,21 @@ def _sync_loop(filters, args):
         time.sleep(5)
 
 
+_fields = ["filename", "datetime", "size (MB)", "human time"]
+
+
 def print_file_list(filters, args, count_only=False):
     files = command.list_files(*filters, remote_dir=args.remote_dir)
-    files = sorted(files, key=lambda f: f.datetime)
     files = list(files)
-    title = "Files in {}".format(args.remote_dir)
-    nbytes = 0
-
-    print(title)
-    print("="* len(title))
-
-    for f in files:
-        nbytes += f.size
-        if count_only:
-            continue
-        print("{}  {}  {:0.2f}MB".format(
-              f.filename, f.datetime.format("YYYY-MM-DD  HH:mm:ss"),
-              f.size / 10**6))
-    if nbytes >= 10**8:
-        units, val = "GB", nbytes / 10**9
-    elif nbytes >= 10**5:
-        units, val = "MB", nbytes / 10**6
-    elif nbytes >= 10**2:
-        units, val = "KB", nbytes / 10**3
-    else:
-        units, val = "B", nbytes
-
-    print("({:d} files, {:0.2f} {} total)\n".format(
-          len(files), val, units))
+    print("\nFiles in {}".format(args.remote_dir))
+    rows = util.fmt_file_rows(files)
+    table = tabulate.tabulate(rows, headers=_fields, tablefmt="fancy_grid")
+    if not count_only:
+        print(table)
+    nbytes = sum(f.size for f in files)
+    size, units = util.get_size_units(nbytes)
+    print("{:d} files, {:0.2f} {} total".format(
+          len(files), size, units))
     
 
 print_file_count = partial(print_file_list, count_only=True)

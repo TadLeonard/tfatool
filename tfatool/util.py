@@ -1,5 +1,8 @@
 import arrow
 
+from itertools import groupby
+from operator import attrgetter, itemgetter
+
 
 def parse_datetime(datetime_input):
     """The arrow library is sadly not good enough to parse
@@ -81,4 +84,29 @@ def _parse_time(time_els):
 def _is_year(element):
     return len(element) == 4
 
+
+def fmt_file_rows(files):
+    files = sorted(files, key=attrgetter("datetime"))
+    for f in files:
+        fn = f.filename
+        dt = f.datetime.format("YYYY-MM-DD HH:mm")
+        size, units = get_size_units(f.size)
+        if units == "MB":
+            size = "{:> 3.02f}".format(size)
+        else:
+            size = "{:> 3.02f} ({})".format(size, units)
+        human = f.datetime.humanize()
+        yield fn, dt, size, human
+
+
+def get_size_units(nbytes):
+    if nbytes >= 10**8:
+        units, val = "GB", nbytes / 10**9
+    elif nbytes >= 10**5:
+        units, val = "MB", nbytes / 10**6
+    elif nbytes >= 10**2:
+        units, val = "KB", nbytes / 10**3
+    else:
+        units, val = "B", nbytes
+    return val, units
 

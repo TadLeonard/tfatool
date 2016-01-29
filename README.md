@@ -333,9 +333,9 @@ filter_date = lambda f: f.datetime > some_date  # after my birthday
 filter_raw = lambda f: not f.filename.lower().endswith(".raw", ".cr2")
 filter_name = lambda f: f.filename.lower()startswith("IMG_08")
 certain_files = command.list_files(filter_raw, filter_name, filter_date)
-
 for f in certain_files:
-    print("{:s}: {:0.2f} MB".format(f.filename, f.size / 10**6))
+    print("{:s}: {:0.2f} MB (created {:s})".format(
+        f.filename, f.size / 10**6, f.datetime.humanize()))
 ```
 
 ### Example 2: using file synchronization functions
