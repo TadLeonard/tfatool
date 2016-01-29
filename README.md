@@ -88,13 +88,11 @@ File filters:
                         work on only files BEFORE given datetime
 ```
 
-### Prelude: filtering files by name, time
+### Prelude: filtering files by name, creation time
 
 All operations `flashair-util` carries out (both remote and local) can be restricted
-to a subset of files with some simple arguments. If we're listing or counting files, we can
-filter which files get listed or counted. If we're synchronizing remote files to our
-local filesystem, we can filter the kinds of files we download. The same applies
-for uploads; we can pick and choose certain files on our filesystem to send to FlashAir.
+to a subset of files with some simple arguments. We can filter by filename and
+by creation date/time.
 
 #### Filtering by date and time
 
@@ -118,16 +116,24 @@ You can use `-t` and `-T` together to filter for files within a slice of time. S
 
 Files can also be filtered by their name. The `-j` or `--only-jpg` option
 filters for JPEG files. Filters of greater complexity can be made with
-the `-k` or `--match-regex` option, which matches the filename against
-a given regular expression pattern. Some examples:
+the `-k/--match-regex` option, which matches the filename against
+a regular expression pattern. Some examples:
 
 * `--match-regex '.+\.raw'`: match all files ending in `.raw`
 * `-k 'IMG-08.+\.jpg'`: match all JPEGs starting with `IMG-08`
 
 ### Example 1: sync newly created files on FlashAir card
 
-Watch for new files on the FlashAir SD card. When new files are found,
-write them to a specified local directory.
+The `-s/--sync-forever` mode watches for new files. When new files are found,
+they're synchronized with the specified local or remote directory.
+
+File synchronizing can be done in one of three ways:
+
+1. Download only (default or chosen with `-y down/--sync-direction down`)
+2. Upload only (`-y up/--sync-direction up`)
+3. Bidirectional (`-y both/--sync-direction both`)
+
+Monitor FlashAir for JPEGs and copy them to `path/to/files` as they appear.
 
 ```
 $ flashair-util -s -d path/to/files --only-jpg
@@ -145,12 +151,6 @@ Some time later, a new photo appears in the default remote directory.
 2016-01-22 21:30:05,771 | INFO | tfatool.sync | Requesting file: http://flashair/DCIM/100__TSB/IMG_0802.JPG
 2016-01-22 21:30:05,866 | INFO | tfatool.sync | Wrote IMG_0802.JPG in 1.00 s (4.31 MB, 4.31 MB/s)
 ```
-
-File synchronizing can be done in one of three ways:
-
-1. Download only (default or chosen with `-y down/--sync-direction down`)
-2. Upload only (`-y up/--sync-direction up`)
-3. Bidirectional (`-y both/--sync-direction both`)
 
 ### Example 2: sync subset of files on FlashAir *just once*
 
@@ -172,7 +172,7 @@ flashair-util -S all -d stuff/ -j -t '2015-12-15 15:00' -T 2016-01-12
 2016-01-22 22:29:30,855 | INFO | tfatool.sync | Wrote IMG_0803.JPG in 10.07 s (4.55 MB, 0.45 MB/s)
 ``` 
 
-Other simple `--sync-once` examples include:
+Other simple `--sync-once` examples:
 
 * Just grab the most recent JPEG: `flashair-util -S time -n 1`
 * Sync most recent 5 files by timestamp: `flashair-util -S time --n-files 5`
@@ -182,9 +182,9 @@ Other simple `--sync-once` examples include:
   greatest filenames: `flashair-util -S name --n-files 10 -k '.+08\.JPG'`
 
 
-### Example 3: listing certain files on FlashAir
+### Example 3: listing files on FlashAir
 
-List all files created after 3:00 pm today:
+List all remote files created after 3:00 pm today:
 
 ```
 $ flashair-util -l -t 15:00
@@ -323,7 +323,7 @@ flashair_files = command.list_files()  # list files in /DCIM/100__TSB by default
 special_files = command.list_files(remote_dir="/DCIM/my_special_folder")
 
 # get an integer count of files in a certain dir
-n_flashair_files = command.count_files(remote_Dir="/DCIM")  # count in specific directory
+n_files = command.count_files(remote_dir="/DCIM")  # count in specific directory
 ```
 
 Files listed by FlashAir are converted to a `namedtuple` with
@@ -333,10 +333,8 @@ and `datetime` is a `datetime` object from the `arrow` library.
 Filters can inspect any of these tuple parameters.
 
 ```python
-# file list fn takes optional filters
-# here we cull any RAW files (.raw or .cr2) and files of a certain name
-# we can also filter for datetime, since file timestamps are converted
-# to arrow datetime objects
+# here we cull any RAW files (.raw or .cr2), files of a certain name,
+# and files created after some arrow datetime
 # you can combine any number of filters
 some_date = arrow.get("1987-04-02 11:33:03")  # arrow datetimes supported
 filter_date = lambda f: f.datetime > some_date  # after my birthday
@@ -363,9 +361,11 @@ sync.down_by_time(count=15, local_dir="/home/tad/Pictures")
 
 # Sync specific files selected from files list
 from tfatool import command
-all_files = command.list_files()
-only_camille_photos = [f for f in all_files if "camille" in f.filename.lower()]
-sync.down_by_files(only_camille_photos, local_dir="/home/tad/Pictures/camille")
+camille_filter = lambda f: "camille" in f.filename().lower()  # certain filename
+jpeg_filter = lambda f: f.filename.lower().endswith(".jpg")  # only JPEGs
+size_filter = lambda f: f.size < (5 * (10 ** 6))  # only files < 5 MB
+camille_photos = command.list_files(camille_filter, jpeg_filter, size_filter)
+sync.down_by_files(camille_photos, local_dir="/home/tad/Pictures/camille")
 ```
 
 ### Example 3A: watching for newly created files
@@ -375,11 +375,11 @@ monitoring your FlashAir device and your local filesystem for
 newly created fiiles. File monitoring can work in one of three ways:
 
 1. watch for new files in a remote FlashAir directory and
-   download them as they appear to a local directory
-2. watch for new files in a local directory and upload them
-   as they appear to a remote FlashAir directory
+   sync them to a local directory
+2. watch for new files in a local directory and
+   sync them to a remote FlashAir location
 3. watch for new files in *both* local and remote locations
-   and update each accordingly
+   and synchronize them both
 
 Download remote files as they appear with `down_by_arrival`:
 
