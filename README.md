@@ -24,7 +24,7 @@ files and configuring the device from the command line.
   Sync files (up AND down) created this afternoon             | `flashair-util -S all -t 12:00 -T 16:00 -y  both`
   Sync files up created after a very specific date/time       | `flashair-util -S all -t '2016-1-25 11:38:22'`
   Sync (up and down) 5 most recent files of a certain name    | `flashair-util -S time -k 'IMG-08.+\.raw' -y both`
-  List files on FlashAir with a certain creation time         | `flashair-util -l -t`
+  List files on FlashAir created after a certain time         | `flashair-util -l -t`'1-21-2016 8:30:11'
   Change FlashAir network SSID                                | `flashair-config --wifi-ssid myflashairnetwork`
   Show FlashAir network password & firmware version           | `flashair-config --show-wifi-key --show-fw-version`
 
@@ -310,10 +310,10 @@ from tfatool import command
 # get files in a FlashAir directory as a list of namedtuples
 # each namedtuple has six attributes: directory, filename, time, date, etc
 flashair_files = command.list_files()  # list files in /DCIM/100__TSB by default
-special_files = command.list_files(DIR="/DCIM/my_special_folder")
+special_files = command.list_files(remote_dir="/DCIM/my_special_folder")
 
 # get an integer count of files in a certain dir
-n_flashair_files = command.count_files(DIR="/DCIM")  # count in specific directory
+n_flashair_files = command.count_files(remote_Dir="/DCIM")  # count in specific directory
 ```
 
 Files listed by FlashAir are converted to a `namedtuple` with
