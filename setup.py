@@ -40,7 +40,7 @@ classifiers = [
 setup(name="tfatool",
       version=tfatool._version.__version__,
       scripts=["flashair-util", "flashair-config"],
-      install_requires=["requests>=2.9.0", "tqdm>=3.7.1", "arrow"],
+      install_requires=["requests>=2.9.0", "tqdm>=3.7.1", "arrow", "tabulate"],
       licence="MIT",
       packages=["tfatool"],
       description=description,
