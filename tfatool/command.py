@@ -118,7 +118,8 @@ def _decode_time(date_val: int, time_val: int):
     minute = ((time_val >> 5) & 0b111111)
     second = (time_val & 0b11111) * 2
     try:
-        decoded = arrow.get(year, month, day, hour, minute, second)
+        decoded = arrow.get(year, month, day, hour,
+                            minute, second, tzinfo="local")
     except ValueError:
         year = max(1980, year)  # FAT32 doesn't go higher
         month = min(max(1, month), 12)
