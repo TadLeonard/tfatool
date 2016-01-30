@@ -220,7 +220,7 @@ IMG_0584.JPG  2016-01-16  18:54   5.12  13 days ago
 List all JPEGs created in the years 2014, 2015 and 2016.
 
 ```
-flashair-util -l -t 2012 -T 2017 -j
+flashair-util -l -t 2014 -T 2017 -j
 2016-01-29 16:31:26,286 | INFO | main | Filtering from [2012-01-01 00:00:00] to [2017-01-01 00:00:00]
 
 Files in /DCIM/100__TSB
