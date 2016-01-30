@@ -84,6 +84,7 @@ def _str_encode_time(encoded_time: int):
 def _encode_time(mtime: float):
     """Encode a mtime float as a 32-bit FAT time"""
     dt = arrow.get(mtime)
+    dt = dt.to("local")
     date_val = ((dt.year - 1980) << 9) | (dt.month << 5) | dt.day
     secs = dt.second + dt.microsecond / 10**6
     time_val = (dt.hour << 11) | (dt.minute << 5) | math.floor(secs / 2)
