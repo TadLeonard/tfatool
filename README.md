@@ -470,7 +470,7 @@ response = post(prepped_params)
 
 # Installation
 
-Requires `requests`, `tqdm`, `arrow`, `tabulate`, and `python3.4+`.
+Requires `requests`, `tqdm`, `arrow`, `tabulate`, and `python3.5+`.
 
 Install with your system's Python3:
 
