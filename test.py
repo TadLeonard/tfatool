@@ -1,11 +1,12 @@
 import os
 import arrow
+import tqdm
 
 from urllib import parse
 from tfatool.info import Config, WifiMode, DriveMode
 from tfatool.info import Upload, WriteProtectMode
 from tfatool.config import config
-from tfatool import command, upload, util
+from tfatool import command, upload, util, sync
 
 
 def test_config_construction():
@@ -70,6 +71,7 @@ def test_command_cgi_url():
 def test_datetime_encode_decode():
     ctime = os.stat("README.md").st_ctime
     dtime = arrow.get(ctime)
+    dtime = dtime.to("local")
 
     # encode to FAT32 time
     encoded = upload._encode_time(ctime)
@@ -181,4 +183,11 @@ def test_datetime_month_day_only():
     assert dt.second == 0
     assert dt.minute == 0
     assert dt.hour == 0
+
+
+def test_pbar_safe_update():
+    pbar = tqdm.tqdm(total=10)
+    sync._update_pbar(pbar, 1)
+    sync._update_pbar(pbar, -1)  # no crash
+    sync._update_pbar(pbar, 0)  # no crash
 
