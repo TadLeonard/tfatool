@@ -245,7 +245,7 @@ def _write_file(local_path, fileinfo, response):
         with open(local_path, "wb") as outfile:
             for chunk in response.iter_content(5*10**5):
                 progress = len(chunk) / (5 * 10**5)
-                pbar.update(int(progress))
+                _update_pbar(pbar, progress)
                 outfile.write(chunk)
     else:
         raise requests.RequestException("Expected status code 200")
@@ -254,6 +254,16 @@ def _write_file(local_path, fileinfo, response):
     logger.info("Wrote {} in {:0.2f} s ({:0.2f} MB, {:0.2f} MB/s)".format(
                 fileinfo.filename, duration, fileinfo.size / 10 ** 6,
                 fileinfo.size / (duration * 10 ** 6)))
+
+
+def _update_pbar(pbar, val):
+    update_val = max(int(val), 1)
+    try:
+        pbar.update(update_val)
+    except Exception as e:
+        # oh, c'mon TQDM, progress bars shouldn't crash software
+        logger.debug("TQDM progress bar error: {}({})".format(
+                     e.__class__.__name__, e))
 
 
 #####################################################
