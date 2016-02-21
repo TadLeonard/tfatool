@@ -18,6 +18,16 @@ a simple abstraction of the FlashAir API is provided. As a set of
 scripts, `tfatool` the user is given a way of synchronizing/mirroring
 files and configuring the device from the command line.
 
+Package contents at a glance
+============================
+
+* ``flashair-util``: a command line tool for mirroring and listing files on FlashAir
+* ``flashair-config``: a command line tool for configuring FlashAir
+* ``tfatool.command``: abstraction of FlashAir's `command.cgi <https://flashair-developers.com/en/documents/api/commandcgi/>`_
+* ``tfatool.upload``: abstraction of FlashAir's `upload.cgi  <https://flashair-developers.com/en/documents/api/uploadcgi/>`_
+* ``tfatool.config``: abstraction of FlashAir's `config.cgi <https://flashair-developers.com/en/documents/api/configcgi/>`_
+* ``tfatool.sync``: functions for synchronizing local dirs with remote FlashAir dirs
+
 Command line usage at a glance
 ==============================
 
@@ -69,16 +79,6 @@ Command line usage at a glance
 
     ``flashair-config --show-wifi-key --show-fw-version``
 
-Package contents at a glance
-============================
-
-* ``flashair-util``: a command line tool for mirroring and listing files on FlashAir
-* ``flashair-config``: a command line tool for configuring FlashAir
-* ``tfatool.command``: abstraction of FlashAir's `command.cgi <https://flashair-developers.com/en/documents/api/commandcgi/>`_
-* ``tfatool.upload``: abstraction of FlashAir's `upload.cgi  <https://flashair-developers.com/en/documents/api/uploadcgi/>`_
-* ``tfatool.config``: abstraction of FlashAir's `config.cgi <https://flashair-developers.com/en/documents/api/configcgi/>`_
-* ``tfatool.sync``: functions for synchronizing local dirs with remote FlashAir dirs
-
 More
 ====
 
@@ -105,7 +105,7 @@ classifiers = [
 
 
 install_requires = ["requests>=2.9.0", "tqdm>=3.7.1", "arrow", "tabulate"]
-if sys.version_info() < (3, 5):
+if sys.version_info < (3, 5):
     install_requires.append("scandir")
 
 setup(name="tfatool",
