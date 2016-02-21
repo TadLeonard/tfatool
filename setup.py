@@ -124,6 +124,6 @@ setup(name="tfatool",
       keywords="wireless sd card sdcard sync toshiba flashair", 
       url=url,
       download_url=download,
-      zip_safe=True,
+      zip_safe=False,
 )
 
