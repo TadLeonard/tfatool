@@ -13,7 +13,8 @@ def parse_datetime(datetime_input):
     date_els, time_els = _split_datetime(datetime_input)
     date_vals = _parse_date(date_els)
     time_vals = _parse_time(time_els)
-    return arrow.get(*date_vals, *time_vals)    
+    vals = tuple(date_vals) + tuple(time_vals)
+    return arrow.get(*vals)
     
 
 def _split_datetime(datetime_input):
@@ -42,7 +43,8 @@ def _split_datetime(datetime_input):
         raise ValueError("Date '{}' can't be understood".format(date_input))
     if time_input and ":" not in time_input:
         raise ValueError("Time '{}' has no ':'-separators".format(time_input))
-    return date_input.split(sep), time_input.split(":")
+    d, t = date_input.split(sep), time_input.split(":")
+    return tuple(d), tuple(t)
 
 
 def _parse_date(date_els):
@@ -73,7 +75,7 @@ def _parse_time(time_els):
     if len(time_els) == 1:
         time_vals = 0, 0, 0 
     elif len(time_els) == 2:
-        time_vals = *time_els, 0  # assumed H:M
+        time_vals = time_els + (0,)  # assumed H:M
     elif len(time_els) == 3:
         time_vals = time_els  # H:M:S
     else:
