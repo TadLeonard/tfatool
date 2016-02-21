@@ -19,6 +19,14 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+# Python 3.4 compatibility via scandir backport
+if hasattr(os, "scandir"):
+    scandir = os.scandir
+else:
+    import scandir
+    scandir = scandir.scandir
+
+
 #####################################
 # Synchronizing newly created files
 
@@ -346,7 +354,7 @@ def _upload_file_safely(fileinfo, remote_dir):
 
 
 def list_local_files(*filters, local_dir="."):
-    all_entries = os.scandir(local_dir)
+    all_entries = scandir(local_dir)
     file_entries = (e for e in all_entries if e.is_file())
     for entry in file_entries:
         stat = entry.stat()
@@ -359,7 +367,7 @@ def list_local_files(*filters, local_dir="."):
 
 
 def list_local_files_raw(*filters, local_dir="."):
-    all_entries = os.scandir(local_dir)
+    all_entries = scandir(local_dir)
     all_files = (e for e in all_entries if e.is_file() and
                  all(filt(e) for filt in filters))
     for entry in all_files:
