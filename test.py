@@ -12,7 +12,7 @@ from tfatool import command, upload, util, sync
 def test_config_construction():
     params = {Config.wifi_ssid: "chiquita"}
     cfg = config(params)
-    assert cfg == {"MASTERCODE": "BEEFBEEFBEEF", "APPSSID": "chiquita"}
+    assert cfg == {"MASTERCODE": "beefbeefbeef", "APPSSID": "chiquita"}
 
 
 def test_invalid_timeout_value():
@@ -50,7 +50,7 @@ def test_full_config():
                 'APPINFO': 'some info is fun', 'APPAUTOTIME': 60000,
                 'APPMODE': 2, 'APPNETWORKKEY': 'supersecret', 'TIMEZONE': -20,
                 'BRGSSID': 'officewifi', 'CLEARCODE': 1,
-                'MASTERCODE': 'BEEFBEEFBEEF'}
+                'MASTERCODE': 'beefbeefbeef'}
     
 
 def test_command_cgi_query():
