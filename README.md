@@ -475,7 +475,7 @@ Requires `requests`, `tqdm`, `arrow`, `tabulate`, and `python3.5+`.
 Install with your system's Python3:
 
 ```
-pip3 install tfatool
+python3.5 -m pip install tfatool
 ```
 
 Or into a virtualenv:
