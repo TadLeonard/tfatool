@@ -128,7 +128,7 @@ def up_by_arrival(*filters, local_dir=".", remote_dir=DEFAULT_REMOTE_DIR):
 
 
 def down_by_arrival(*filters, local_dir=".", remote_dir=DEFAULT_REMOTE_DIR):
-    """Monitors a remote FlashAir direcotry and generates sets of
+    """Monitors a remote FlashAir directory and generates sets of
     new files to be downloaded from FlashAir.
     Sets to download are generated in a tuple like ("down", {...}).
     The generator yields before each download actually takes place."""

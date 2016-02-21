@@ -92,8 +92,8 @@ def _validate_passthroughssid(network_ssid: str):
 @_validator(Config.mastercode)
 def _validate_mastercode(code: str):
     assert len(code) == 12
-    code = code.upper()
-    valid_chars = "0123456789ABCDEF"
+    code = code.lower()
+    valid_chars = "0123456789abcdef"
     assert all(c in valid_chars for c in code)
     return code
 
