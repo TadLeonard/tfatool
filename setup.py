@@ -1,4 +1,5 @@
 import os
+import sys
 import tfatool._version
 from setuptools import setup
 
