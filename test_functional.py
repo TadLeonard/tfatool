@@ -49,18 +49,34 @@ def test_smoke():
               fn.__name__, val, type(val)))
 
 
-def _prepare_test_files():
+def _prepare_test_files(local_only=False):
     test_names = ["__testfile{0}".format(n) for n in range(2, -1, -1)]
     name_filter = lambda f: f.filename.startswith("__testfile")
     for f in test_names:
         os.system("touch {}".format(f))
-        upload.delete_file("/DCIM/{}".format(f))
+        if not local_only:
+            upload.delete_file("/DCIM/{}".format(f))
     return test_names, name_filter
 
 
 def _teardown_test_files(names):
     for name in names:
-        os.remove(name)
+        try:
+            os.remove(name)
+        except OSError:
+            pass
+
+
+def test_watch_local():
+    watcher = sync.watch_local_files()
+    new_files, all_files = next(watcher)
+    assert not new_files
+    names, name_filter = _prepare_test_files(local_only=True)
+    new_files, all_files = next(watcher)
+    assert {f.filename for f in new_files} == set(names)
+    new_files, all_files = next(watcher)
+    assert not new_files
+    _teardown_test_files(names)
 
 
 def test_sync_up_by_time():
