@@ -3,6 +3,8 @@ import os
 import threading
 import time
 
+from enum import Enum
+from functools import partial
 from pathlib import Path, PosixPath
 from urllib.parse import urljoin
 
@@ -14,7 +16,6 @@ from . import command, upload
 from .info import URL, DEFAULT_REMOTE_DIR
 from .info import RawFileInfo, SimpleFileInfo
 
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -25,6 +26,11 @@ if hasattr(os, "scandir"):
 else:
     import scandir
     scandir = scandir.scandir
+
+
+class Direction(str, Enum):
+    up = "upload"  # upload direction
+    down = "download"  # download direction
 
 
 #####################################
@@ -79,90 +85,66 @@ def up_down_by_arrival(*filters, local_dir=".",
     """Monitors a local directory and a remote FlashAir directory and
     generates sets of new files to be uploaded or downloaded.
     Sets to upload are generated in a tuple
-    like ("up", {...}), while download sets to download 
-    are generated in a tuple like ("down", {...}). The generator yields
+    like (Direction.up, {...}), while download sets to download 
+    are generated in a tuple like (Direction.down, {...}). The generator yields
     before each upload or download actually takes place."""
-    local = set(list_local_files(*filters, local_dir=local_dir))
-    remote = set(command.list_files(*filters, remote_dir=remote_dir))
-    _notify_sync_ready(len(local), local_dir, remote_dir)   
-    _notify_sync_ready(len(remote), remote_dir, local_dir)
-    new_names = set()
-    while True:
-        new_local = set(list_local_files(*filters, local_dir=local_dir))
-        new_arrivals = _whats_new(new_local, local, new_names)
-        if new_arrivals:
-            new_names.update(f.filename for f in new_arrivals)
-            logger.info("Files to upload:\n{}".format(
-                "\n".join("  " + f.filename for f in new_arrivals)))
-            yield "up", new_arrivals
-            up_by_files(new_arrivals, remote_dir)
-            local = new_local
-            _notify_sync_ready(len(local), local_dir, remote_dir)
-        else:
-            yield "up", set()
-        new_remote = set(command.list_files(*filters, remote_dir=remote_dir))
-        new_arrivals = _whats_new(new_remote, remote, new_names)
-        if new_arrivals:
-            new_names.update(f.filename for f in new_arrivals)
-            logger.info("Files to download:\n{}".format(
-                "\n".join("  " + f.filename for f in new_arrivals)))
-            yield "down", new_arrivals
-            down_by_files(new_arrivals, local_dir)
-            remote = new_remote
-            _notify_sync_ready(len(remote), remote_dir, local_dir)
-        else:
-            yield "down", set()
+    local_monitor = watch_local_files(*filters, local_dir=local_dir)
+    remote_monitor = watch_remote_files(*filters, remote_dir=remote_dir)
+    _, lfile_set = next(local_monitor)
+    _, rfile_set = next(remote_monitor)
+    _notify_sync_ready(len(lfile_set), local_dir, remote_dir)
+    _notify_sync_ready(len(rfile_set), remote_dir, local_dir)
+    processed = set()
+    for new_local, new_remote in zip(local_monitor, remote_monitor):
+        new_local, local_set = new_local
+        local_arrivals = {f for f in new_local if f.filename not in processed}
+        yield Direction.up, local_arrivals
+        if local_arrivals:
+            new_names.update(f.filename for f in local_arrivals)
+            _notify_sync(Direction.up, local_arrivals)
+            up_by_files(local_arrivals, remote_dir)
+            _notify_sync_ready(len(local_set), local_dir, remote_dir)
+        new_remote, remote_set = new_remote
+        remote_arrivals = {f for f in new_remote if f.filename not in processed}
+        yield Direction.down, remote_arrivals
+        if remote_arrivals:
+            new_names.update(f.filename for f in remote_arrivals)
+            _notify_sync(Direction.down, remote_arrivals)
+            yield Direction.down, remote_arrivals
+            down_by_files(remote_arrivals, local_dir)
+            _notify_sync_ready(len(remote_set), remote_dir, local_dir)
 
 
 def up_by_arrival(*filters, local_dir=".", remote_dir=DEFAULT_REMOTE_DIR):
     """Monitors a local directory and
     generates sets of new files to be uploaded to FlashAir.
-    Sets to upload are generated in a tuple like ("up", {...}).
+    Sets to upload are generated in a tuple like (Direction.up, {...}).
     The generator yields before each upload actually takes place."""
-    old_files = set(list_local_files(*filters, local_dir=local_dir))
-    _notify_sync_ready(len(old_files), local_dir, remote_dir)
-    while True:
-        new_files = set(list_local_files(*filters, local_dir=local_dir))
-        if new_files > old_files: 
-            new_arrivals = new_files - old_files
-            logger.info("Files to upload:\n{}".format(
-                "\n".join("  " + f.filename for f in new_arrivals)))
-            yield "up", new_arrivals
+    local_monitor = watch_local_files(*filters, local_dir=local_dir)
+    _, file_set = next(local_monitor)
+    _notify_sync_ready(len(file_set), local_dir, remote_dir)
+    for new_arrivals, file_set in local_monitor:
+        yield Direction.up, new_arrivals  # where new_arrivals is possibly empty
+        if new_arrivals:
+            _notify_sync(Direction.up, new_arrivals)
             up_by_files(new_arrivals, remote_dir)
-            old_files = new_files
-            _notify_sync_ready(len(old_files), local_dir, remote_dir)
-        else:
-            yield "up", set()
+            _notify_sync_ready(len(file_set), local_dir, remote_dir)
 
 
 def down_by_arrival(*filters, local_dir=".", remote_dir=DEFAULT_REMOTE_DIR):
     """Monitors a remote FlashAir directory and generates sets of
     new files to be downloaded from FlashAir.
-    Sets to download are generated in a tuple like ("down", {...}).
+    Sets to download are generated in a tuple like (Direction.down, {...}).
     The generator yields before each download actually takes place."""
-    old_files = set(command.list_files(*filters, remote_dir=remote_dir))
-    command.memory_changed()  # clear change status to start
-    _notify_sync_ready(len(old_files), remote_dir, local_dir)
-    while True:
-        if command.memory_changed():
-            new_files = set(command.list_files(
-                *filters, remote_dir=remote_dir))
-            new_arrivals = new_files - old_files
-            logger.info("Files to download:\n{}".format(
-                "\n".join("  " + f.filename for f in new_arrivals)))
-            yield "down", new_arrivals
+    remote_monitor = watch_remote_files(*filters, remote_dir=remote_dir)
+    _, file_set = next(remote_monitor)
+    _notify_sync_ready(len(file_set), remote_dir, local_dir)
+    for new_arrivals, file_set in remote_monitor:
+        yield Direction.down, new_arrivals
+        if new_arrivals:
+            _notify_sync(Direction.down, new_arrivals)
             down_by_files(new_arrivals, local_dir)
-            old_files = new_files
-            _notify_sync_ready(len(old_files), remote_dir, local_dir)
-        else:
-            yield "down", set()
-
-
-def _whats_new(new, old, processed):
-    new_arrivals = new - old
-    new_arrivals = {f for f in new_arrivals
-                    if f.filename not in processed}
-    return new_arrivals
+            _notify_sync_ready(len(file_set), remote_dir, local_dir)
 
 
 ###################################################
@@ -184,8 +166,7 @@ def down_by_time(*filters, remote_dir=DEFAULT_REMOTE_DIR, local_dir=".", count=1
     files = command.list_files(*filters, remote_dir=remote_dir)
     most_recent = sorted(files, key=lambda f: f.datetime)
     to_sync = most_recent[-count:]
-    logger.info("Files to download:\n{}".format(
-        "\n".join("  " + f.filename for f in to_sync)))
+    _notify_sync(Direction.down, to_sync)
     down_by_files(to_sync[::-1], local_dir=local_dir)
 
 
@@ -194,8 +175,7 @@ def down_by_name(*filters, remote_dir=DEFAULT_REMOTE_DIR, local_dir=".", count=1
     files = command.list_files(*filters, remote_dir=remote_dir)
     greatest = sorted(files, key=lambda f: f.filename)
     to_sync = greatest[-count:]
-    logger.info("Files to download:\n{}".format(
-        "\n".join("  " + f.filename for f in to_sync)))
+    _notify_sync(Direction.down, to_sync)
     down_by_files(to_sync[::-1], local_dir=local_dir)
 
 
@@ -274,13 +254,36 @@ def _update_pbar(pbar, val):
                      e.__class__.__name__, e))
 
 
+###########################################
+# Local and remote file watcher-generators
+
+def watch_local_files(*filters, local_dir="."):
+    list_local = partial(list_local_files, *filters, local_dir=".")
+    old_files = new_files = set(list_local()) 
+    while True:
+        yield new_files - old_files, new_files 
+        old_files = new_files
+        new_files = set(list_local())
+
+
+def watch_remote_files(*filters, remote_dir="."):
+    command.memory_changed()  # clear change status to start
+    list_remote = partial(command.list_files,
+                          *filters, remote_dir=remote_dir)
+    old_files = new_files = set(list_remote()) 
+    while True:
+        yield new_files - old_files, new_files 
+        old_files = new_files
+        if command.memory_changed():
+            new_files = set(list_remote())
+
+
 #####################################################
 # Synchronize ONCE in the UP direction (to FlashAir)
 
 def up_by_all(*filters, local_dir=".", remote_dir=DEFAULT_REMOTE_DIR, **_):
     files = list_local_files(*filters, local_dir=local_dir)
-    files = list(files)
-    up_by_files(files, remote_dir=remote_dir)
+    up_by_files(list(files), remote_dir=remote_dir)
 
 
 def up_by_files(to_sync, remote_dir=DEFAULT_REMOTE_DIR, remote_files=None):
@@ -297,8 +300,7 @@ def up_by_time(*filters, local_dir=".", remote_dir=DEFAULT_REMOTE_DIR, count=1):
     local_files = list_local_files(*filters, local_dir=local_dir)
     most_recent = sorted(local_files, key=lambda f: f.datetime)
     to_sync = most_recent[-count:]
-    logger.info("Files to upload:\n{}".format(
-        "\n".join("  " + f.filename for f in to_sync)))
+    _notify_sync(Direction.up, to_sync)
     up_by_files(to_sync[::-1], remote_dir, remote_files)
 
 
@@ -308,8 +310,7 @@ def up_by_name(*filters, local_dir=".", remote_dir=DEFAULT_REMOTE_DIR, count=1):
     local_files = list_local_files(*filters, local_dir=local_dir)
     greatest = sorted(local_files, key=lambda f: f.filename)
     to_sync = greatest[-count:]
-    logger.info("Files to upload:\n{}".format(
-        "\n".join("  " + f.filename for f in to_sync)))
+    _notify_sync(Direction.up, to_sync)
     up_by_files(to_sync[::-1], remote_dir, remote_files)
 
 
@@ -373,6 +374,13 @@ def list_local_files_raw(*filters, local_dir="."):
     for entry in all_files:
         path = str(Path(local_dir, entry.name))
         yield RawFileInfo(local_dir, entry.name, path, entry.stat().st_size)
+
+
+
+def _notify_sync(direction, files):
+    logger.info("{:d} files to {:s}:\n{}".format(
+        len(files), direction,
+        "\n".join("  " + f.filename for f in files)))
 
 
 def _notify_sync_ready(num_old_files, from_dir, to_dir):
