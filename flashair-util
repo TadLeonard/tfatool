@@ -175,8 +175,9 @@ def _sync_loop(filters, args):
                     time.sleep(0.3)
         except KeyboardInterrupt:
             break
-        logger.warning("Sync loop interrupted -- restarting in 5s")
-        time.sleep(5)
+        else:
+            logger.warning("Sync loop interrupted -- restarting in 5s")
+            time.sleep(5)
 
 
 _fields = ["filename", "date", "time", "MB", "created"]

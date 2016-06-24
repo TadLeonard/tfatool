@@ -61,7 +61,7 @@ class Monitor:
             _, new = next(files)
             if not new:
                 time.sleep(0.3)
-        
+
     def sync_both(self):
         self._run(up_down_by_arrival)
 
@@ -85,7 +85,7 @@ def up_down_by_arrival(*filters, local_dir=".",
     """Monitors a local directory and a remote FlashAir directory and
     generates sets of new files to be uploaded or downloaded.
     Sets to upload are generated in a tuple
-    like (Direction.up, {...}), while download sets to download 
+    like (Direction.up, {...}), while download sets to download
     are generated in a tuple like (Direction.down, {...}). The generator yields
     before each upload or download actually takes place."""
     local_monitor = watch_local_files(*filters, local_dir=local_dir)
@@ -135,16 +135,16 @@ def down_by_arrival(*filters, local_dir=".", remote_dir=DEFAULT_REMOTE_DIR):
     """Monitors a remote FlashAir directory and generates sets of
     new files to be downloaded from FlashAir.
     Sets to download are generated in a tuple like (Direction.down, {...}).
-    The generator yields before each download actually takes place."""
+    The generator yields AFTER each download actually takes place."""
     remote_monitor = watch_remote_files(*filters, remote_dir=remote_dir)
     _, file_set = next(remote_monitor)
     _notify_sync_ready(len(file_set), remote_dir, local_dir)
     for new_arrivals, file_set in remote_monitor:
-        yield Direction.down, new_arrivals
         if new_arrivals:
             _notify_sync(Direction.down, new_arrivals)
             down_by_files(new_arrivals, local_dir)
             _notify_sync_ready(len(file_set), remote_dir, local_dir)
+        yield Direction.down, new_arrivals
 
 
 ###################################################
@@ -208,7 +208,7 @@ def _stream_to_file(local_name, fileinfo):
 
 def _get_file(fileinfo):
     url = urljoin(URL, fileinfo.path)
-    logger.info("Requesting file: {}".format(url)) 
+    logger.info("Requesting file: {}".format(url))
     return requests.get(url, stream=True)
 
 
@@ -226,7 +226,7 @@ def _write_file_safely(local_path, fileinfo, response):
 
 
 def _write_file(local_path, fileinfo, response):
-    start = time.time() 
+    start = time.time()
     pbar_size = fileinfo.size / (5 * 10**5)
     pbar = tqdm.tqdm(total=int(pbar_size))
     if response.status_code == 200:
@@ -258,10 +258,10 @@ def _update_pbar(pbar, val):
 # Local and remote file watcher-generators
 
 def watch_local_files(*filters, local_dir="."):
-    list_local = partial(list_local_files, *filters, local_dir=".")
-    old_files = new_files = set(list_local()) 
+    list_local = partial(list_local_files, *filters, local_dir=local_dir)
+    old_files = new_files = set(list_local())
     while True:
-        yield new_files - old_files, new_files 
+        yield new_files - old_files, new_files
         old_files = new_files
         new_files = set(list_local())
 
@@ -270,9 +270,9 @@ def watch_remote_files(*filters, remote_dir="."):
     command.memory_changed()  # clear change status to start
     list_remote = partial(command.list_files,
                           *filters, remote_dir=remote_dir)
-    old_files = new_files = set(list_remote()) 
+    old_files = new_files = set(list_remote())
     while True:
-        yield new_files - old_files, new_files 
+        yield new_files - old_files, new_files
         old_files = new_files
         if command.memory_changed():
             new_files = set(list_remote())
