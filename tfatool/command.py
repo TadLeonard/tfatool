@@ -46,7 +46,11 @@ def count_files(remote_dir=DEFAULT_REMOTE_DIR, url=URL):
 def memory_changed(url=URL):
     """Returns True if memory has been written to, False otherwise"""
     response = _get(Operation.memory_changed, url)
-    return int(response.text) == 1
+    try:
+        return int(response.text) == 1
+    except ValueError:
+        raise IOError("Likely no FlashAir connection, "
+                      "memory changed CGI command failed")
 
 
 def get_ssid(url=URL):
@@ -80,7 +84,7 @@ def get_wifi_mode(url=URL) -> WifiMode:
         if mode.value == mode_value:
             return mode
     raise ValueError("Uknown mode: {:d}".format(mode_value))
-        
+
 
 #####################
 # API implementation
