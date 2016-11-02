@@ -5,11 +5,13 @@
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat-blue)](http://badges.mit-license.org)
 [![PyPI version](https://badge.fury.io/py/tfatool.svg)](https://badge.fury.io/py/tfatool)
 
-This package provides easy access to
-Toshiba's FlashAir wireless SD card. As a library,
-a simple abstraction of the FlashAir API is provided. As a set of
-scripts, `tfatool` the user is given a way of synchronizing/mirroring
-files and configuring the device from the command line.
+This package provides easy access to the
+Toshiba FlashAir wireless SD card. As a library,
+`tfatool` provides an easy-to-use abstraction of the FlashAir API.
+The package includes two command line utilities:
+`flashair-util` gives the user a way of synchronizing/mirroring
+files and directories between the local filesystem and FlashAir,
+while `flashair-config` lets the user configure the the deivce.
 
 ### Command line usage at a glance
 
@@ -108,7 +110,7 @@ You can use `-t` and `-T` together to filter for files within a slice of time. S
 * `-t 18:00`: all files created this evening (after 6:00 pm today)
 * `-t 2014 -T 2015`: all files created in 2014
 * `-t 11/4 -T 11/28`: all files created between Nov. 4 and Nov 28 of this year
-* `-t '2016-4-02 11:30' -T '2016/04/02 13:30`: all files created Apr.
+* `-t '2016-4-02 11:30' -T '2016/04/02 13:30'`: all files created Apr.
    2nd between 11:30 am and 2:30 pm.
 * `-t 7:00 -T 11:00`: all files created this morning
 
