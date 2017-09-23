@@ -20,14 +20,15 @@ def upload_file(local_path: str, url=URL, remote_dir=DEFAULT_REMOTE_DIR):
     set_write_protect(WriteProtectMode.off, url=url)
 
 
-def delete_file(remote_filepath: str, url: str = URL,
-                remote_dir: Optional[str] = DEFAULT_REMOTE_DIR):
+def delete_file_in(remote_filepath: str, url: str = URL,
+                   remote_dir: Optional[str] = DEFAULT_REMOTE_DIR):
     """
     Delete `remote_filepath` from the FlashAir device at `url`.
     If `remote_dir` is specified, the complete path to the resource to
     be deleted will be the joining of `remote_dir` and `remote_filepath`.
-    By default, `remote_dir` is the FlashAir default directory, so the most common
-    usage of this function is `delete_file("my_file.jpg").
+    By default, `remote_dir` is the FlashAir default directory,
+    so the most common usage of this function is
+    `delete_file_in("my_file.jpg")`.
 
     If `remote_dir` is None, `remote_filepath` will be used as the full path
     to the resource to be deleted.
@@ -39,10 +40,15 @@ def delete_file(remote_filepath: str, url: str = URL,
     file system.'
     """
     delete_request = _prep_delete_request(remote_filepath, url, remote_dir)
-    response = cgi.post(delete_request)
+    response = cgi.send(delete_request)
     if response.text != ResponseCode.success:
         raise UploadError("Failed to delete file", response)
     return response
+
+
+# Partially applied delete_file_in with no remote_dir
+# Call this when you know the exact path of the file you're deleting
+delete_file = partial(delete_file_in, remote_dir=None)
 
 
 def _prep_delete_request(
@@ -84,13 +90,6 @@ def post_file(local_path: str, url=URL):
     response = post(url=url, req_kwargs=dict(files=files))
     if response.status_code != 200:
         raise UploadError("Failed to post file", response)
-    return response
-
-
-def delete_file(remote_file: str, url=URL):
-    response = get(url=url, **{Upload.delete: remote_file})
-    if response.status_code != 200:
-        raise UploadError("Failed to delete file", response)
     return response
 
 
