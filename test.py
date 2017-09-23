@@ -68,7 +68,7 @@ def test_command_cgi_url():
     assert url == "http://192.168.0.1/command.cgi"
 
 
-def test_delete_request_url():
+def test_delete_request():
     req = upload._prep_delete_request("ham.png")
     assert (req.url ==
             "http://flashair/upload.cgi?DEL=%2FDCIM%2F100__TSB%2Fham.png")
@@ -79,6 +79,15 @@ def test_delete_request_url():
     expected = "http://flashair/upload.cgi?DEL=/DCIM/100__TSB/DSC_100.JPG"
     raw_url = upload._prep_delete_request("DSC_100.JPG").url
     assert raw_url.replace("%2F", "/") == expected
+
+
+def test_delete_request_no_directory():
+    """Make sure the user can specify a `None` remote directory
+    so that they can construct full paths of their own to delete files.
+    """
+    req = upload._prep_delete_request("ham.png", remote_dir=None)
+    assert (req.url ==
+            "http://flashair/upload.cgi?DEL=ham.png")
 
 
 def test_datetime_encode_decode():
