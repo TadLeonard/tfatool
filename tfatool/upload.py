@@ -3,11 +3,13 @@ import os
 import arrow
 
 from functools import partial
+from pathlib import PosixPath
+from typing import Optional
 
 from . import cgi
 from .info import DEFAULT_REMOTE_DIR, DEFAULT_MASTERCODE, URL
 from .info import WriteProtectMode, Upload, ResponseCode
-from requests import RequestException
+from requests import RequestException, Request
 
 
 def upload_file(local_path: str, url=URL, remote_dir=DEFAULT_REMOTE_DIR):
@@ -16,6 +18,41 @@ def upload_file(local_path: str, url=URL, remote_dir=DEFAULT_REMOTE_DIR):
     set_creation_time(local_path, url=url)
     post_file(local_path, url=url)
     set_write_protect(WriteProtectMode.off, url=url)
+
+
+def delete_file(remote_filepath: str, url: str = URL,
+                remote_dir: Optional[str] = DEFAULT_REMOTE_DIR):
+    """
+    Delete `remote_filepath` from the FlashAir device at `url`.
+    If `remote_dir` is specified, the complete path to the resource to
+    be deleted will be the joining of `remote_dir` and `remote_filepath`.
+    By default, `remote_dir` is the FlashAir default directory, so the most common
+    usage of this function is `delete_file("my_file.jpg").
+
+    If `remote_dir` is None, `remote_filepath` will be used as the full path
+    to the resource to be deleted.
+
+    A note from the FlashAir docs:
+    'Important: If you delete a directory, be sure that it does not
+    contain child directories or files. If you delete a parent directory,
+    its child directories and files may no longer be recognized by the
+    file system.'
+    """
+    delete_request = _prep_delete_request(remote_filepath, url, remote_dir)
+    response = cgi.post(delete_request)
+    if response.text != ResponseCode.success:
+        raise UploadError("Failed to delete file", response)
+    return response
+
+
+def _prep_delete_request(
+        remote_filepath: str, url: str = URL,
+        remote_dir: Optional[str] = DEFAULT_REMOTE_DIR) -> Request:
+    if remote_dir is None:
+        full_remote_path = remote_filepath
+    else:
+        full_remote_path = str(PosixPath(remote_dir, remote_filepath))
+    return prep_post(url, **{Upload.delete: full_remote_path})
 
 
 def set_write_protect(mode: WriteProtectMode, url=URL):
