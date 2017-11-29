@@ -1,7 +1,7 @@
 import logging
 import arrow
 
-from pathlib import PosixPath
+from pathlib import PurePosixPath
 from collections import namedtuple
 from . import cgi
 from .info import URL, DEFAULT_REMOTE_DIR
@@ -99,7 +99,7 @@ def _split_file_list(text):
             size, attr_val, date_val, time_val = remaining
             timeinfo = _decode_time(date_val, time_val)
             attribute = _decode_attribute(attr_val)
-            path = str(PosixPath(directory, filename))
+            path = str(PurePosixPath(directory, filename))
             yield FileInfo(directory, filename, path,
                            size, attribute, timeinfo)
 
@@ -110,7 +110,7 @@ def _split_file_list_raw(text):
         groups = line.split(",")
         if len(groups) == 6:
             directory, filename, size, *_ = groups
-            path = str(PosixPath(directory, filename))
+            path = str(PurePosixPath(directory, filename))
             yield RawFileInfo(directory, filename, path, int(size))
 
 
